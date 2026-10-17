@@ -1,6 +1,6 @@
 # AgentForge — Session 1 status
 
-Date: 2026-10-16
+Date: 2026-10-17
 Active repository: https://github.com/Karnchoudhary-99/agentforge
 Overall project progress: **approximately 8%** (session-based estimate: foundation scaffold and initial CI exist; Session 1 remains open until dependency installation is reproducible).
 Target: 14 planned work sessions. Target finish is around 2026-10-29 if sessions proceed without major blockers; this is an estimate, not a guarantee.
@@ -23,11 +23,14 @@ Record the PocketLedger-to-AgentForge switch, establish the charter and architec
 - Latest code commit before the current CI workflow update: [12b9454](https://github.com/Karnchoudhary-99/agentforge/commit/12b9454c7ffbd824973f643b1a171ac25ebc8ca3)
 - Previous verified successful CI: https://github.com/Karnchoudhary-99/agentforge/actions/runs/38727481836
 - Current CI run for the frontend test integration commit: https://github.com/Karnchoudhary-99/agentforge/actions/runs/38851686413
-- Current run status at the time of this update: **pending / not yet verified**. Do not mark this session complete until this run and the final progress-doc commit's CI have completed successfully.
-- Previously verified: backend tests (Java 21) and frontend production build both passed on GitHub-hosted runners after the CSS type declaration fix.
-- New frontend Vitest tests are now wired into CI; their result must be checked in the latest run.
+- Latest verified run: [CI run #20 — success](https://github.com/Karnchoudhary-99/agentforge/actions/runs/38851712189), on commit `349808337e3c6a6ef1312650a8eefd5521104c56` (completed 2026-10-16 04:44 UTC).
+- The preceding run #19 for commit `f213db3b22227bae46f188d49ed9475e61f393cc` was **cancelled** when the next push superseded it; it is not treated as a failure.
+- Run #20's overall conclusion is **SUCCESS**. This confirms the workflow jobs completed successfully for the current commit, but does not close the clean-install quality gate because CI still uses `npm install` and no lockfile exists.
+- On 2026-10-17, repository re-inspection confirmed latest main commit remains `349808337e3c6a6ef1312650a8eefd5521104c56`, `frontend/package-lock.json` is absent (GitHub contents API returns 404), and no open issues were found.
+- No new application code or tests were added in this review. Session 1 remains open pending reproducible dependency installation.
 
 ## Local verification and limitations
+- Current-session limitation (2026-10-17): this run can inspect and update GitHub repository content and verify remote Actions, but the environment cannot resolve the npm registry to generate a genuine lockfile. Do not fabricate one or claim `npm ci` verification.
 - Structural checks and POM/package/workflow syntax checks passed in the earlier local scaffold verification.
 - JDK 21 is available locally, but Maven is not installed; backend tests must be verified on GitHub-hosted runners unless Maven becomes available.
 - Local npm dependency resolution and a package-lock-only generation attempt timed out in this environment. Therefore no valid committed `package-lock.json` is available yet.
