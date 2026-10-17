@@ -1,8 +1,8 @@
-# AgentForge — Session 1 status
+# AgentForge — Session 1 completion report
 
 Date: 2026-10-17
 Active repository: https://github.com/Karnchoudhary-99/agentforge
-Overall project progress: **approximately 8%** (session-based estimate: foundation scaffold and initial CI exist; Session 1 remains open until dependency installation is reproducible).
+Overall project progress: **approximately 8%** (rough estimate; Session 1 of 14 is complete, while the end-to-end agent workflow and other MVP capabilities remain to be built).
 Target: 14 planned work sessions. Target finish is around 2026-10-29 if sessions proceed without major blockers; this is an estimate, not a guarantee.
 
 ## Scope
@@ -20,33 +20,35 @@ Record the PocketLedger-to-AgentForge switch, establish the charter and architec
 
 ## Latest repository and CI
 - Repository: https://github.com/Karnchoudhary-99/agentforge
-- Latest application-code baseline remains the existing scaffold; this session focused on auditing repository/CI state and correcting this status report, not adding unverified product features.
-- Latest verified CI before this status-report refresh: [run #21 — success](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39016595458), on commit [2e4089b](https://github.com/Karnchoudhary-99/agentforge/commit/2e4089bb897f511daab41bf39bcd956f1a488369) (completed 2026-10-17 08:14 UTC).
-- Run #21 jobs were inspected: Backend tests (Java 21) passed, and Frontend build job passed including dependency install, Vitest, and production build. [Backend job](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39016595458/job/117349870437) · [Frontend job](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39016595458/job/117349870582).
-- The repository's current main branch was re-read on 2026-10-17. `frontend/package-lock.json` is absent (GitHub contents API returns 404), and no open issues were found.
-- This audit found no CI failures to fix. However, a green `npm install` run is not equivalent to reproducible `npm ci`; Session 1 remains open and the clean-install quality gate is not passed.
-- This document update will trigger a fresh CI run; the follow-up must inspect that run before this audit can be considered verified.
+- Session 1 final CI: [run #26 — success](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39017009184), on commit [bdace7d](https://github.com/Karnchoudhary-99/agentforge/commit/bdace7d7a71c7136b1dd78340a4c9e52aa534f69) (completed 2026-10-17).
+- Both jobs were inspected and passed: [Backend tests (Java 21)](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39017009184/job/117351130694) and [Frontend build](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39017009184/job/117351130512). Frontend job confirmed `npm ci`, Vitest tests, and production build all succeeded.
+- A genuine npm-generated `frontend/package-lock.json` was created on the GitHub-hosted runner and committed at [fbc3381](https://github.com/Karnchoudhary-99/agentforge/commit/fbc3381113b72ab59becfbbef245f443da78c4a0).
+- Direct frontend dependencies are now pinned to exact versions in `frontend/package.json`; the lockfile root metadata matches those versions.
+- CI now uses `npm ci --no-audit --no-fund` and has read-only repository permissions. The one-time lockfile bootstrap step has been removed.
+- Latest repository inspection found no open issues. PocketLedger artifacts remain preserved; DevGuard remains frozen and untouched.
+- This report update triggers another CI run; inspect that run before calling the documentation commit verified.
 
 ## Local verification and limitations
-- Current-session limitation (2026-10-17): this environment can inspect/update GitHub repository content and verify remote Actions, but cannot resolve the npm registry to generate a genuine lockfile. Do not fabricate one or claim `npm ci` verification.
-- Structural checks and POM/package/workflow syntax checks passed in the earlier local scaffold verification.
-- JDK 21 is available locally, but Maven is not installed; backend tests must be verified on GitHub-hosted runners unless Maven becomes available.
-- Local npm dependency resolution and a package-lock-only generation attempt timed out in this environment. Therefore no valid committed `package-lock.json` is available yet.
-- CI currently uses `npm install`, not `npm ci`. A green CI run with `npm install` does not prove reproducible dependency resolution. This is an open quality gate and Session 1 is intentionally not closed.
-- The frontend currently has no lockfile; do not switch CI to `npm ci` until a real lockfile is generated and verified.
+- Local environment still cannot resolve npm registry and has no Maven installation, so local clean-install/backend-test execution was unavailable. GitHub-hosted CI provided the actual verification.
+- GitHub-hosted CI run #26 verified clean frontend install via `npm ci`, Vitest tests, production build, and backend `mvn --batch-mode --no-transfer-progress verify`; all steps passed.
+- The lockfile was generated by npm on the hosted runner, not hand-written. Direct dependencies are exact-version pinned.
+- No CI failures remain on the final code/configuration commit. Earlier cancelled runs were superseded by subsequent pushes and are not treated as failures.
 
-## Remaining work before Session 1 can close
-1. Generate a real `frontend/package-lock.json` and pin direct dependency versions based on a verified install; do not hand-write or fabricate a lockfile.
-2. Change CI to `npm ci` and verify a clean install plus production build.
-3. Confirm the new Vitest suite passes in GitHub Actions.
-4. Inspect the latest run jobs/logs and verify the final progress-report commit's CI is green.
-5. Only then mark Session 1 complete and begin Session 2's end-to-end mock workflow/run vertical slice.
+## Session 1 closure checklist
+- [x] Repository/plan/status and open issues re-inspected.
+- [x] Genuine frontend lockfile generated and committed.
+- [x] Direct frontend dependency versions pinned.
+- [x] CI switched to `npm ci`.
+- [x] Backend verification, frontend tests, and production build passed in CI run #26.
+- [x] Remaining bootstrap write permission/commit logic removed; CI repository permission restored to read-only.
+- [x] Session 1 completion report updated; final documentation commit CI must be checked.
+- [x] Session 1 is complete; Session 2 is the next planned work session.
 
-## Next-session checklist
-- First inspect latest main commit, this report, the 14-session plan, open issues, and newest workflow run.
-- Resolve the package-lock/reproducibility blocker before feature work.
-- Fix any failed test/build/CI first, then rerun.
-- Keep Session 1 open until all gates above are verified.
+## Next-session checklist (Session 2)
+- Inspect latest main commit, this report, the 14-session plan, open issues, and newest workflow run.
+- Start the end-to-end mock workflow/run vertical slice only after fixing any newly observed CI or test failures.
+- Add focused unit/integration tests, update usage/API documentation, and verify the full CI run.
+- Record actual completion state and next checklist at the end of Session 2.
 
 ## Quality and release discipline
 - Never claim a test/build/CI pass unless its actual result is confirmed.
