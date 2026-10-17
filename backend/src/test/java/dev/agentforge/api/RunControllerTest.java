@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(RunController.class)
 @Import(RunService.class)
@@ -54,12 +55,35 @@ class RunControllerTest {
     }
 
     @Test
-    void rejectsBlankOrOversizedInput() throws Exception {
+    void retrievesRunByItsLocation() throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/runs")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"workflowName":"Risk review","task":"List possible risks"}
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String location = result.getResponse().getHeader("Location");
+        mockMvc.perform(get(location))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.workflowName").value("Risk review"))
+                .andExpect(jsonPath("$.events.length()").value(2));
+    }
+
+    @Test
+    void rejectsBlankAndOversizedInput() throws Exception {
         mockMvc.perform(post("/api/runs")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"workflowName":" ","task":"Do work"}
                                 """))
+                .andExpect(status().isBadRequest());
+
+        String oversizedTask = "x".repeat(1001);
+        mockMvc.perform(post("/api/runs")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"workflowName\":\"Test\",\"task\":\"" + oversizedTask + "\"}"))
                 .andExpect(status().isBadRequest());
     }
 
