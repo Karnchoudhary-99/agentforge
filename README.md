@@ -2,7 +2,7 @@
 
 **An observable, policy-bounded AI agent platform with human approval gates.** AgentForge helps teams define and run controlled AI workflows with registered tools, explicit approval for sensitive actions, durable execution history, and evaluation. It is intentionally more than a chat UI: the application, not the model, owns tool permissions and execution.
 
-> **Project status:** Session 2 — end-to-end deterministic mock run slice. The 14-session MVP plan is tracked in [docs/14-SESSION-PLAN.md](docs/14-SESSION-PLAN.md). Release readiness will only be claimed after required tests, security checks, setup verification, and GitHub Actions are green.
+> **Project status:** Session 3 — deterministic bounded runtime with explicit run-state transitions and structured execution plan. The 14-session MVP plan is tracked in [docs/14-SESSION-PLAN.md](docs/14-SESSION-PLAN.md). Release readiness will only be claimed after required tests, security checks, setup verification, and GitHub Actions are green.
 
 ## MVP promise
 

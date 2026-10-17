@@ -11,8 +11,10 @@ public record RunResponse(
         String status,
         String summary,
         Instant createdAt,
+        List<PlanStep> plan,
         List<RunEvent> events) {
     public RunResponse {
+        plan = List.copyOf(plan);
         events = List.copyOf(events);
     }
 }

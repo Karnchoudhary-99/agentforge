@@ -1,47 +1,34 @@
-# AgentForge API — Session 2 mock vertical slice
+# AgentForge API — bounded runtime (Session 3)
 
-Base URL for local development: `http://localhost:8080`. The Vite dev server proxies `/api/*` to this backend on port 8080.
+Base URL for local development: http://localhost:8080. The Vite dev server proxies /api/* to the API on port 8080.
 
 ## Create a mock run
 
-`POST /api/runs` accepts JSON:
+POST /api/runs accepts JSON with workflowName and task.
 
-```json
-{
-  "workflowName": "Research brief",
-  "task": "Summarize the main risks in this supplied task"
-}
-```
+- workflowName: required, non-blank, at most 80 characters.
+- task: required, non-blank, at most 1,000 characters.
+- Success: 201 Created, a Location: /api/runs/{uuid} header, and the run response.
+- The deterministic runtime transitions through QUEUED → RUNNING → SUCCEEDED.
+- The response contains a fixed three-step plan and four timeline events: run.created, run.started, plan.prepared, run.succeeded.
+- Invalid request bodies return 400 Bad Request.
+- This remains a mock runtime: it does not call an LLM, execute tools, access the network, or perform side effects.
 
-- `workflowName`: required, non-blank, at most 80 characters.
-- `task`: required, non-blank, at most 1,000 characters.
-- Success: `201 Created`, a `Location: /api/runs/{uuid}` header, and the run response.
-- The deterministic mock immediately returns `Succeeded` and a two-event timeline. It does not call an LLM, execute tools, access the network, or perform side effects.
-- Invalid request bodies return `400 Bad Request`.
+## State transition rules
 
-## List runs
+Allowed transitions:
+- QUEUED → RUNNING or QUEUED → CANCELLED
+- RUNNING → SUCCEEDED, RUNNING → FAILED, or RUNNING → CANCELLED
+- SUCCEEDED, FAILED, and CANCELLED are terminal states.
 
-`GET /api/runs` returns runs newest first. Runs are held in process memory for this session only; restarting the API clears them. Durable persistence is planned for Session 7.
+Illegal transitions throw IllegalStateException and are covered by unit tests. The current mock endpoint completes synchronously; cancellation and asynchronous execution are not wired into HTTP endpoints yet.
 
-## Get one run
+## List and retrieve runs
 
-`GET /api/runs/{uuid}` returns the run or `404 Not Found` if the identifier is unknown.
+- GET /api/runs returns runs newest first.
+- GET /api/runs/{uuid} returns a run or 404 Not Found if unknown.
+- Run records remain in process memory and are cleared when the backend restarts. Durable persistence is planned for Session 7.
 
 ## Run response shape
 
-```json
-{
-  "id": "e2f2a6d2-1a4f-4a36-a3f2-56e7e98f7b9b",
-  "workflowName": "Research brief",
-  "task": "Summarize the main risks in this supplied task",
-  "status": "Succeeded",
-  "summary": "Mock execution completed safely for the submitted task. No external model or tools were invoked.",
-  "createdAt": "2026-10-17T09:00:00Z",
-  "events": [
-    { "timestamp": "2026-10-17T09:00:00Z", "type": "run.created", "message": "Run accepted by AgentForge." },
-    { "timestamp": "2026-10-17T09:00:00.001Z", "type": "mock.completed", "message": "Deterministic mock completed; no model or external tools were called." }
-  ]
-}
-```
-
-This API is an MVP vertical slice, not the final orchestration engine. Tool policies, approval decisions, persistence, cancellation, and live-provider integration are introduced in later sessions.
+The response includes id, workflowName, task, status, summary, createdAt, plan (ordered PlanStep objects), and events (timestamped RunEvent objects). Plan steps expose order, title, description, and status. The current mock plan always contains three bounded steps; each is marked COMPLETED because execution is synchronous and deterministic.

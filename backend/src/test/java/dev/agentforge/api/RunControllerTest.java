@@ -15,13 +15,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest(RunController.class)
-@Import(RunService.class)
+@Import({RunService.class, TaskPlanner.class})
 class RunControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void createsMockRunAndReturnsTimeline() throws Exception {
+    void createsMockRunAndReturnsPlanAndTimeline() throws Exception {
         mockMvc.perform(post("/api/runs")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -34,9 +34,14 @@ class RunControllerTest {
                 .andExpect(jsonPath("$.status").value("Succeeded"))
                 .andExpect(jsonPath("$.summary").value(
                         "Mock execution completed safely for the submitted task. No external model or tools were invoked."))
-                .andExpect(jsonPath("$.events.length()").value(2))
+                .andExpect(jsonPath("$.plan.length()").value(3))
+                .andExpect(jsonPath("$.plan[0].title").value("Validate request"))
+                .andExpect(jsonPath("$.plan[2].status").value("COMPLETED"))
+                .andExpect(jsonPath("$.events.length()").value(4))
                 .andExpect(jsonPath("$.events[0].type").value("run.created"))
-                .andExpect(jsonPath("$.events[1].type").value("mock.completed"));
+                .andExpect(jsonPath("$.events[1].type").value("run.started"))
+                .andExpect(jsonPath("$.events[2].type").value("plan.prepared"))
+                .andExpect(jsonPath("$.events[3].type").value("run.succeeded"));
     }
 
     @Test
@@ -68,7 +73,8 @@ class RunControllerTest {
         mockMvc.perform(get(location))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.workflowName").value("Risk review"))
-                .andExpect(jsonPath("$.events.length()").value(2));
+                .andExpect(jsonPath("$.plan.length()").value(3))
+                .andExpect(jsonPath("$.events.length()").value(4));
     }
 
     @Test
