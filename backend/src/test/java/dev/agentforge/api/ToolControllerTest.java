@@ -1,0 +1,88 @@
+package dev.agentforge.api;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+@WebMvcTest(ToolController.class)
+@Import({ToolRegistry.class, WordCountTool.class})
+class ToolControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    void listsOnlyExplicitlyRegisteredToolsWithSchema() throws Exception {
+        mockMvc.perform(get("/api/tools"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("text.word-count"))
+                .andExpect(jsonPath("$[0].inputSchema.additionalProperties").value(false))
+                .andExpect(jsonPath("$[0].inputSchema.required[0]").value("text"));
+    }
+
+    @Test
+    void executesAllowlistedWordCountTool() throws Exception {
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":"AgentForge keeps tools bounded"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.toolName").value("text.word-count"))
+                .andExpect(jsonPath("$.output.wordCount").value(4))
+                .andExpect(jsonPath("$.output.characterCount").value(30));
+    }
+
+    @Test
+    void rejectsUnknownToolNames() throws Exception {
+        mockMvc.perform(post("/api/tools/system.shell/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rejectsMissingExtraBlankAndOversizedInputs() throws Exception {
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":"valid","extra":true}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":"   "}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        String oversized = "x".repeat(1001);
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"text\":\"" + oversized + "\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void rejectsNonStringTextInput() throws Exception {
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":123}
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+}

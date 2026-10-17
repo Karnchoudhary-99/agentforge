@@ -2,7 +2,7 @@
 
 **An observable, policy-bounded AI agent platform with human approval gates.** AgentForge helps teams define and run controlled AI workflows with registered tools, explicit approval for sensitive actions, durable execution history, and evaluation. It is intentionally more than a chat UI: the application, not the model, owns tool permissions and execution.
 
-> **Project status:** Session 3 — deterministic bounded runtime with explicit run-state transitions and structured execution plan. The 14-session MVP plan is tracked in [docs/14-SESSION-PLAN.md](docs/14-SESSION-PLAN.md). Release readiness will only be claimed after required tests, security checks, setup verification, and GitHub Actions are green.
+> **Project status:** Session 4 — deterministic bounded runtime with explicit run-state transitions, structured execution plan, and server-owned allowlisted tool registry. The 14-session MVP plan is tracked in [docs/14-SESSION-PLAN.md](docs/14-SESSION-PLAN.md). Release readiness will only be claimed after required tests, security checks, setup verification, and GitHub Actions are green.
 
 ## MVP promise
 
@@ -42,7 +42,7 @@ Prerequisites: JDK 21, Maven 3.9+, Node.js 22+, npm, and Docker Compose.
 5. Open the Vite URL (usually `http://localhost:5173`). The Vite dev server proxies `/api/*` to the API on port 8080.
 6. Health endpoint: `GET http://localhost:8080/api/health`.
 
-The mock run endpoints are documented in [docs/API.md](docs/API.md). Runs are in-memory only until the persistence session; restarting the API clears them. The mock executor never calls an external model or tools.
+The mock run endpoints are documented in [docs/API.md](docs/API.md). Runs are in-memory only until the persistence session; restarting the API clears them. The mock executor does not call an external model or access external services. The `text.word-count` example tool is registered server-side and has a strict input schema.
 
 Never commit `.env` or credentials. The exact available endpoints and commands will evolve as the MVP is implemented; consult this README and the session status report for the current verified state.
 

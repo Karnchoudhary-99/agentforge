@@ -1,0 +1,39 @@
+package dev.agentforge.api;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+@RestController
+@RequestMapping("/api/tools")
+public class ToolController {
+    private final ToolRegistry registry;
+
+    public ToolController(ToolRegistry registry) {
+        this.registry = registry;
+    }
+
+    @GetMapping
+    public List<ToolDefinition> listTools() {
+        return registry.list();
+    }
+
+    @PostMapping("/{toolName}/execute")
+    public ToolExecutionResponse executeTool(
+            @PathVariable String toolName, @RequestBody JsonNode input) {
+        try {
+            return registry.execute(toolName, input);
+        } catch (ToolNotFoundException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
+        }
+    }
+}
