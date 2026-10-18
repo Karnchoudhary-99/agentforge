@@ -12,21 +12,21 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(ToolController.class)
+@WebMvcTest(value = ToolController.class, properties = "agentforge.security.api-token=test-token")
 @Import({ToolRegistry.class, WordCountTool.class, ToolExecutionPolicy.class, ToolExecutionService.class})
-@TestPropertySource(properties = "agentforge.tools.allowed=another.registered.tool")
+@TestPropertySource(properties = {"agentforge.tools.allowed=another.registered.tool", "agentforge.security.api-token=test-token"})
 class ToolPolicyControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
     @Test
     void policyDeniedRegisteredToolIsNotListedAndReturnsForbidden() throws Exception {
-        mockMvc.perform(get("/api/tools"))
+        mockMvc.perform(get("/api/tools").header("X-AgentForge-Token", "test-token"))
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
                         .json("[]"));
 
-        mockMvc.perform(post("/api/tools/text.word-count/execute")
+        mockMvc.perform(post("/api/tools/text.word-count/execute").header("X-AgentForge-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"text":"must not execute"}
