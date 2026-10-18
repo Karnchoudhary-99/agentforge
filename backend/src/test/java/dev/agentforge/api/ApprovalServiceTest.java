@@ -26,7 +26,7 @@ class ApprovalServiceTest {
 
             assertEquals("APPROVED", approvals.decide(pending.id(), true).status());
             assertThrows(ApprovalConflictException.class, () -> approvals.decide(pending.id(), true));
-            assertEquals(2, approvals.executeApproved(pending.id()).output().get("wordCount"));
+            assertEquals(2L, approvals.executeApproved(pending.id()).output().get("wordCount"));
             assertThrows(ApprovalConflictException.class, () -> approvals.executeApproved(pending.id()));
             assertEquals(3, approvals.auditEvents().size());
         }
