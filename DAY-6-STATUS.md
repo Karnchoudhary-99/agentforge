@@ -23,13 +23,13 @@ Pull request: https://github.com/Karnchoudhary-99/agentforge/pull/1
 - Approval is bound to the run ID, exact tool name, and deep-copied input.
 - Decisions are single-use; stale/double decisions and replayed execution return 409. Approval is consumed before execution to prevent replay even if execution fails.
 - Added in-memory audit events containing approval/run IDs, sanitized tool name, and decision only. Request payloads and secrets are not copied into audit messages.
-- Added tests for missing/wrong API token and approval approval/rejection/replay behavior.
+- Added tests for missing/wrong API token and approval creation, approval/rejection, and replay behavior.
 - Updated `README.md`, `.env.example`, `docs/API.md`, and `docs/14-SESSION-PLAN.md`.
 
 ## Verification
 
 - Early CI runs found test-source import escaping errors and a numeric assertion type mismatch. These were fixed and rerun; failed runs were not treated as successful.
-- Final implementation CI: [Run #46 — success](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39094970260).
+- Final implementation CI: [Run #48 — success](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39095052466).
 - Backend job log confirms **23 tests, 0 failures, 0 errors, 0 skipped**, with `BUILD SUCCESS`.
 - Frontend `npm ci`, Vitest tests, and production build passed.
 - Both actual GitHub Actions job results and the backend log were inspected.
