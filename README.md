@@ -2,7 +2,7 @@
 
 **An observable, policy-bounded AI agent platform with human approval gates.** AgentForge helps teams define and run controlled AI workflows with registered tools, explicit approval for sensitive actions, durable execution history, and evaluation. It is intentionally more than a chat UI: the application, not the model, owns tool permissions and execution.
 
-> **Project status:** Session 5 — deterministic bounded runtime, server-owned tool registry, independent tool execution policy, payload/concurrency/deadline limits. The 14-session MVP plan is tracked in [docs/14-SESSION-PLAN.md](docs/14-SESSION-PLAN.md). Release readiness will only be claimed after required tests, security checks, setup verification, and GitHub Actions are green.
+> **Project status:** Session 6 complete — deterministic bounded runtime, server-owned tool registry and policy, fail-closed API-token gate, run-bound single-use approval flow, and minimal audit events. Session 7 adds durable persistence. The 14-session MVP plan is tracked in [docs/14-SESSION-PLAN.md](docs/14-SESSION-PLAN.md). Release readiness will only be claimed after required tests, security checks, setup verification, and GitHub Actions are green.
 
 ## MVP promise
 
@@ -29,7 +29,7 @@ Scope is deliberately bounded: one workspace, curated tools, one model provider 
 
 The model proposes structured actions; server-side policy validates every action before execution. Tools are explicitly registered and allowlisted. Sensitive actions pause for human approval. Tool inputs are validated, execution has bounded steps/timeouts/retries, and results are recorded as evidence. Provider keys remain in backend environment variables and must never be placed in browser code, checked into Git, or included in logs.
 
-Tool execution defaults to the server-side `text.word-count` allowlist, an 8 KiB serialized input cap, a 2-second deadline, at most 4 concurrent workers, and a bounded queue of 16. Automatic retries are disabled until tools declare safe idempotency semantics. The tool API has no authentication yet; do not expose it to untrusted users.
+Tool execution defaults to the server-side `text.word-count` allowlist, an 8 KiB serialized input cap, a 2-second deadline, at most 4 concurrent workers, and a bounded queue of 16. Automatic retries are disabled until tools declare safe idempotency semantics. Tool execution and approval routes require the server-configured `AGENTFORGE_API_TOKEN`. This is a minimal shared-secret gate, not production identity or role-based authorization; do not expose the service publicly.
 
 See [architecture](docs/ARCHITECTURE.md), [session plan](docs/14-SESSION-PLAN.md), [project switch record](docs/PROJECT-SWITCH-RECORD.md), and [API reference](docs/API.md).
 
