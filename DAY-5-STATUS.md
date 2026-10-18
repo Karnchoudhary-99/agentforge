@@ -53,7 +53,9 @@ Estimated completion: around 2026-10-28 if one verified work session is complete
 - Frontend job: `npm ci` succeeded, **2 Vitest tests passed**, production build succeeded.
 - Actual GitHub Actions job summaries and decoded logs were inspected. Both jobs completed successfully.
 - Local Maven/npm execution was not available in this environment; verification claims above refer to the actual GitHub-hosted CI run.
-- Session 5 implementation commit: `a9cb93689af5d2a610f6f443bfe7919e1cc0e37c`. The report/docs commit and its own CI result are tracked after this report is committed.
+- Session 5 implementation commit: [a9cb936](https://github.com/Karnchoudhary-99/agentforge/commit/a9cb93689af5d2a610f6f443bfe7919e1cc0e37c).
+- Status-report/docs commit: [b223a7b](https://github.com/Karnchoudhary-99/agentforge/commit/b223a7b6cc4891335ceaf92c44825378656cee85).
+- Status-report/docs CI: [Run #36 — success](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39094195197); backend and frontend jobs both completed successfully.
 
 ## Known limitations / risk
 
