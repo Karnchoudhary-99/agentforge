@@ -21,11 +21,17 @@ class ToolControllerTest {
     @Test
     void rejectsMissingOrIncorrectApiToken() throws Exception {
         mockMvc.perform(post("/api/tools/text.word-count/execute")
-                        .contentType(MediaType.APPLICATION_JSON).content("{\\"text\\":\\"hello\\"}"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":"hello"}
+                                """))
                 .andExpect(status().isUnauthorized());
         mockMvc.perform(post("/api/tools/text.word-count/execute")
                         .header("X-AgentForge-Token", "wrong-token")
-                        .contentType(MediaType.APPLICATION_JSON).content("{\\"text\\":\\"hello\\"}"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":"hello"}
+                                """))
                 .andExpect(status().isUnauthorized());
     }
 
