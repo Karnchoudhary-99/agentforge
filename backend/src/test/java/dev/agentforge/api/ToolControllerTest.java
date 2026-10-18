@@ -8,12 +8,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Import;\nimport dev.agentforge.security.ApiTokenFilter;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(value = ToolController.class, properties = "agentforge.security.api-token=test-token")
-@Import({ToolRegistry.class, WordCountTool.class, ToolExecutionPolicy.class, ToolExecutionService.class})
+@Import({ToolRegistry.class, WordCountTool.class, ToolExecutionPolicy.class, ToolExecutionService.class, ApiTokenFilter.class})
 class ToolControllerTest {
     @Autowired
     private MockMvc mockMvc;
