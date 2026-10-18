@@ -19,6 +19,17 @@ class ToolControllerTest {
     private MockMvc mockMvc;
 
     @Test
+    void rejectsMissingOrIncorrectApiToken() throws Exception {
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\\"text\\":\\"hello\\"}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .header("X-AgentForge-Token", "wrong-token")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\\"text\\":\\"hello\\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void listsOnlyPolicyAllowedToolsWithSchema() throws Exception {
         mockMvc.perform(get("/api/tools").header("X-AgentForge-Token", "test-token"))
                 .andExpect(status().isOk())
@@ -50,19 +61,19 @@ class ToolControllerTest {
 
     @Test
     void rejectsMissingExtraBlankAndOversizedInputs() throws Exception {
-        mockMvc.perform(post("/api/tools/text.word-count/execute")
+        mockMvc.perform(post("/api/tools/text.word-count/execute").header("X-AgentForge-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest());
 
-        mockMvc.perform(post("/api/tools/text.word-count/execute")
+        mockMvc.perform(post("/api/tools/text.word-count/execute").header("X-AgentForge-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"text":"valid","extra":true}
                                 """))
                 .andExpect(status().isBadRequest());
 
-        mockMvc.perform(post("/api/tools/text.word-count/execute")
+        mockMvc.perform(post("/api/tools/text.word-count/execute").header("X-AgentForge-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"text":"   "}
@@ -70,7 +81,7 @@ class ToolControllerTest {
                 .andExpect(status().isBadRequest());
 
         String oversized = "x".repeat(1001);
-        mockMvc.perform(post("/api/tools/text.word-count/execute")
+        mockMvc.perform(post("/api/tools/text.word-count/execute").header("X-AgentForge-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"text\":\"" + oversized + "\"}"))
                 .andExpect(status().isBadRequest());
@@ -78,7 +89,7 @@ class ToolControllerTest {
 
     @Test
     void rejectsNonStringTextInput() throws Exception {
-        mockMvc.perform(post("/api/tools/text.word-count/execute")
+        mockMvc.perform(post("/api/tools/text.word-count/execute").header("X-AgentForge-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"text":123}
@@ -89,7 +100,7 @@ class ToolControllerTest {
     @Test
     void rejectsPayloadOverByteLimitWith413() throws Exception {
         String padding = "x".repeat(9000);
-        mockMvc.perform(post("/api/tools/text.word-count/execute")
+        mockMvc.perform(post("/api/tools/text.word-count/execute").header("X-AgentForge-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"text\":\"ok\",\"padding\":\"" + padding + "\"}"))
                 .andExpect(status().isPayloadTooLarge());
