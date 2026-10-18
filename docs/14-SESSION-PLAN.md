@@ -15,8 +15,8 @@
 2. **Vertical slice:** agent/run domain model, API contract, UI create/run journey, mock execution end-to-end.
 3. **Agent runtime:** structured task plan, bounded orchestration, state transitions.
 4. **Tool registry:** typed tool schemas, allowlist, validation, safe example tools.
-5. **Safety I:** policy checks, execution limits, timeouts, retry budget, cancellation.
-6. **Safety II:** approval requests, approve/reject endpoints, audit events, negative tests.
+5. **Safety I (complete):** independent default-deny tool policy, serialized input budget, bounded executor pool/queue, execution deadlines, interruption-based timeout cancellation, zero automatic retries, negative tests.
+6. **Safety II + access control:** approval requests and approve/reject endpoints bound to a run/action; audit events; secure tool endpoints with explicit server-side authentication/authorization; default-deny behavior and negative tests for unauthenticated/forbidden requests. Do not expose tool execution to untrusted users until this gate passes.
 7. **Persistence:** PostgreSQL schema/migrations, run and event repositories.
 8. **Observability:** timeline events, run details, failure reasons, token/cost estimates when provider data exists.
 9. **Workflow UI:** React Flow editor, node/edge validation, accessible forms.
