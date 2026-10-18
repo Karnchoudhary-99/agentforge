@@ -13,13 +13,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ToolController.class)
-@Import({ToolRegistry.class, WordCountTool.class})
+@Import({ToolRegistry.class, WordCountTool.class, ToolExecutionPolicy.class, ToolExecutionService.class})
 class ToolControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void listsOnlyExplicitlyRegisteredToolsWithSchema() throws Exception {
+    void listsOnlyPolicyAllowedToolsWithSchema() throws Exception {
         mockMvc.perform(get("/api/tools"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("text.word-count"))
@@ -84,5 +84,14 @@ class ToolControllerTest {
                                 {"text":123}
                                 """))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void rejectsPayloadOverByteLimitWith413() throws Exception {
+        String padding = "x".repeat(9000);
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"text\":\"ok\",\"padding\":\"" + padding + "\"}"))
+                .andExpect(status().isPayloadTooLarge());
     }
 }

@@ -1,0 +1,36 @@
+package dev.agentforge.api;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+
+@WebMvcTest(ToolController.class)
+@Import({ToolRegistry.class, WordCountTool.class, ToolExecutionPolicy.class, ToolExecutionService.class})
+@TestPropertySource(properties = "agentforge.tools.allowed=another.registered.tool")
+class ToolPolicyControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    void policyDeniedRegisteredToolIsNotListedAndReturnsForbidden() throws Exception {
+        mockMvc.perform(get("/api/tools"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .json("[]"));
+
+        mockMvc.perform(post("/api/tools/text.word-count/execute")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":"must not execute"}
+                                """))
+                .andExpect(status().isForbidden());
+    }
+}

@@ -1,4 +1,4 @@
-# AgentForge API — bounded runtime (Session 4)
+# AgentForge API — bounded runtime (Session 5)
 
 Base URL for local development: http://localhost:8080. The Vite dev server proxies /api/* to the API on port 8080.
 
@@ -14,14 +14,20 @@ POST /api/runs accepts JSON with workflowName and task.
 - Invalid request bodies return 400 Bad Request.
 - This remains a mock runtime: it does not call an LLM, access the network, or perform external side effects.
 
-## Tool registry (Session 4)
+## Tool registry and execution policy
 
-- GET /api/tools lists only server-registered tools, including a description and JSON-schema-style input contract.
-- POST /api/tools/{toolName}/execute executes a registered tool with a JSON request body.
+- GET /api/tools lists only tools enabled by the server-side `agentforge.tools.allowed` allowlist.
+- POST /api/tools/{toolName}/execute executes an enabled, registered tool with a JSON request body.
 - The only registered example is `text.word-count`. Its input must be an object containing exactly one `text` string, non-blank and at most 1,000 characters. Extra fields, missing fields, wrong types, blank strings, and oversized strings return 400 Bad Request.
-- An unregistered tool name returns 404 Not Found. There is no fallback to shell commands, arbitrary code, dynamic class loading, or unrestricted network access.
-- The example tool counts words and characters in the provided text only; it does not access files, services, or the network.
-- Tool registration and execution are controlled by the backend, not by a model-provided tool definition. This endpoint is a development capability surface and must be protected by authentication/authorization before exposing it to untrusted users.
+- The default allowed tools value is `text.word-count`; override with the server environment variable `AGENTFORGE_ALLOWED_TOOLS` as a comma-separated list of explicitly trusted tool names. An empty allowlist fails application startup (fail-closed).
+- A registered tool that is not allowed returns 403 Forbidden. An unknown/unregistered tool returns 404 Not Found.
+- The serialized JSON input budget defaults to 8 KiB (`AGENTFORGE_TOOL_MAX_INPUT_BYTES`); exceeding it returns 413 Payload Too Large before the tool runs.
+- Execution defaults to a 2,000 ms deadline (`AGENTFORGE_TOOL_TIMEOUT_MS`). Timed-out tasks are interrupted and return 504 Gateway Timeout. Tool code must cooperate with interruption; Java cannot safely force-stop code that ignores interrupts.
+- Concurrency defaults to 4 active executions and a queue of 16 (`AGENTFORGE_TOOL_MAX_CONCURRENT`, `AGENTFORGE_TOOL_QUEUE_CAPACITY`). Saturation rejects new work with 503 Service Unavailable rather than spawning unbounded threads.
+- Automatic retries are intentionally disabled (retry budget = 0) because retrying a tool may duplicate side effects. A future retry policy must require explicit idempotency semantics and per-tool approval.
+- Configuration values for timeout, concurrency, queue capacity and input size must be positive; invalid resource-limit configuration fails application startup.
+- The example tool only counts words and characters in supplied text. No shell, arbitrary code, filesystem, or network tool exists.
+- This API still has no authentication/authorization layer. It is for trusted local development only and must not be exposed to untrusted users or the public internet until access control is implemented and tested.
 
 ## State transition rules
 
@@ -30,7 +36,7 @@ Allowed transitions:
 - RUNNING → SUCCEEDED, RUNNING → FAILED, or RUNNING → CANCELLED
 - SUCCEEDED, FAILED, and CANCELLED are terminal states.
 
-Illegal transitions throw IllegalStateException and are covered by unit tests. The current mock endpoint completes synchronously; cancellation and asynchronous execution are not wired into HTTP endpoints yet.
+Illegal transitions throw IllegalStateException and are covered by unit tests. The current mock endpoint completes synchronously; run cancellation and asynchronous run execution are not wired into run HTTP endpoints yet. Tool deadlines cancel the worker Future with interruption.
 
 ## List and retrieve runs
 

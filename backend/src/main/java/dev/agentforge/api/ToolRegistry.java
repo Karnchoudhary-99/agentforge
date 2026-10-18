@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 
-/** Server-owned allowlist. User/model input can select only capabilities registered here. */
+/** Server-owned registry. This is necessary but not sufficient: ToolExecutionPolicy also gates calls. */
 @Service
 public class ToolRegistry {
     private final Map<String, AgentTool> tools;
@@ -16,6 +16,9 @@ public class ToolRegistry {
         Map<String, AgentTool> indexed = new LinkedHashMap<>();
         for (AgentTool tool : registeredTools) {
             String name = tool.definition().name();
+            if (name == null || name.isBlank()) {
+                throw new IllegalStateException("Registered tools must have a non-blank name.");
+            }
             if (indexed.putIfAbsent(name, tool) != null) {
                 throw new IllegalStateException("Duplicate registered tool name: " + name);
             }
@@ -28,6 +31,10 @@ public class ToolRegistry {
                 .map(AgentTool::definition)
                 .sorted(Comparator.comparing(ToolDefinition::name))
                 .toList();
+    }
+
+    public boolean contains(String name) {
+        return tools.containsKey(name);
     }
 
     public ToolExecutionResponse execute(String name, JsonNode input) {
