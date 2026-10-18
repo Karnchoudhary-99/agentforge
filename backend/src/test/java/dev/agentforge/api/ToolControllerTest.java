@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(ToolController.class)
+@WebMvcTest(value = ToolController.class, properties = "agentforge.security.api-token=test-token")
 @Import({ToolRegistry.class, WordCountTool.class, ToolExecutionPolicy.class, ToolExecutionService.class})
 class ToolControllerTest {
     @Autowired
@@ -20,7 +20,7 @@ class ToolControllerTest {
 
     @Test
     void listsOnlyPolicyAllowedToolsWithSchema() throws Exception {
-        mockMvc.perform(get("/api/tools"))
+        mockMvc.perform(get("/api/tools").header("X-AgentForge-Token", "test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("text.word-count"))
                 .andExpect(jsonPath("$[0].inputSchema.additionalProperties").value(false))
@@ -29,7 +29,7 @@ class ToolControllerTest {
 
     @Test
     void executesAllowlistedWordCountTool() throws Exception {
-        mockMvc.perform(post("/api/tools/text.word-count/execute")
+        mockMvc.perform(post("/api/tools/text.word-count/execute").header("X-AgentForge-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"text":"AgentForge keeps tools bounded"}
@@ -42,7 +42,7 @@ class ToolControllerTest {
 
     @Test
     void rejectsUnknownToolNames() throws Exception {
-        mockMvc.perform(post("/api/tools/system.shell/execute")
+        mockMvc.perform(post("/api/tools/system.shell/execute").header("X-AgentForge-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isNotFound());
