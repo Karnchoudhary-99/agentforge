@@ -37,7 +37,7 @@ See [architecture](docs/ARCHITECTURE.md), [session plan](docs/14-SESSION-PLAN.md
 
 Prerequisites: JDK 21, Maven 3.9+, Node.js 22+, npm, and Docker Compose.
 
-1. Copy `.env.example` to `.env` and set a model API key only if using live model calls.
+1. Copy `.env.example` to `.env`, set a strong `AGENTFORGE_API_TOKEN` before using tool/approval endpoints, and set a model API key only if using live model calls. Keep `.env` private and never commit real secrets.
 2. Start services: `docker compose up -d postgres`.
 3. Run the API: `cd backend && mvn spring-boot:run`.
 4. Run the UI: `cd frontend && npm ci && npm run dev`.
