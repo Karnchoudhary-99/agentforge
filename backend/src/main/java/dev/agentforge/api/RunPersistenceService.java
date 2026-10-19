@@ -35,7 +35,7 @@ public class RunPersistenceService {
             throw new IllegalStateException("Unable to serialize run plan.", e);
         }
         runs.saveAndFlush(new RunEntity(run.id(), run.workflowName(), run.task(), run.status(),
-                run.summary(), run.createdAt(), plan));
+                run.summary(), run.createdAt(), plan, run.durationMs(), run.failureReason()));
         events.saveAll(run.events().stream().map(e -> new RunEventEntity(
                 UUID.randomUUID(), run.id(), e.timestamp(), e.type(), e.message())).toList());
     }
@@ -58,7 +58,7 @@ public class RunPersistenceService {
             List<RunEvent> timeline = rows.stream()
                     .map(e -> new RunEvent(e.getTimestamp(), e.getType(), e.getMessage())).toList();
             return new RunResponse(r.getId(), r.getWorkflowName(), r.getTask(), r.getStatus(),
-                    r.getSummary(), r.getCreatedAt(), plan, timeline);
+                    r.getSummary(), r.getCreatedAt(), plan, timeline, r.getDurationMs(), r.getFailureReason());
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Unable to read persisted run plan.", e);
         }
