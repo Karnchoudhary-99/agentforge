@@ -32,11 +32,17 @@ public class RunEntity {
     @Column(name = "plan_json", nullable = false, columnDefinition = "text")
     private String planJson;
 
+    @Column(name = "duration_ms")
+    private Long durationMs;
+
+    @Column(name = "failure_reason", length = 240)
+    private String failureReason;
+
     protected RunEntity() {
     }
 
     public RunEntity(UUID id, String workflowName, String task, String status, String summary,
-            Instant createdAt, String planJson) {
+            Instant createdAt, String planJson, Long durationMs, String failureReason) {
         this.id = id;
         this.workflowName = workflowName;
         this.task = task;
@@ -44,6 +50,8 @@ public class RunEntity {
         this.summary = summary;
         this.createdAt = createdAt;
         this.planJson = planJson;
+        this.durationMs = durationMs;
+        this.failureReason = failureReason;
     }
 
     public UUID getId() { return id; }
@@ -53,4 +61,6 @@ public class RunEntity {
     public String getSummary() { return summary; }
     public Instant getCreatedAt() { return createdAt; }
     public String getPlanJson() { return planJson; }
+    public Long getDurationMs() { return durationMs; }
+    public String getFailureReason() { return failureReason; }
 }
