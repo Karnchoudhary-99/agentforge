@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Activity, ArrowUpRight, Bot, CheckCircle2, CirclePlay, Clock3, GitBranch, ShieldCheck, Workflow, X, LoaderCircle } from 'lucide-react';
 import { getRunTone } from './run-status';
+import { formatDuration, formatFailureReason } from './run-diagnostics';
 import './style.css';
 
 type RunEvent = { timestamp: string; type: string; message: string };
@@ -15,6 +16,8 @@ type Run = {
   createdAt: string;
   plan: PlanStep[];
   events: RunEvent[];
+  durationMs: number | null;
+  failureReason: 'TIMEOUT' | 'PROVIDER_UNAVAILABLE' | 'OUTPUT_INVALID' | 'POLICY_DENIED' | 'UNKNOWN' | null;
 };
 
 function App() {
@@ -72,10 +75,11 @@ function App() {
 
   const selectedRun = runs.find((run) => run.id === selectedRunId);
   const successfulRuns = runs.filter((run) => run.status === 'Succeeded').length;
+  const failedRuns = runs.filter((run) => run.status === 'Failed').length;
   const metrics = [
-    { label: 'Workflow runs', value: String(runs.length), note: 'Runs in current API session', icon: Activity },
-    { label: 'Success rate', value: runs.length ? Math.round(successfulRuns / runs.length * 100) + '%' : '—', note: 'Based on loaded runs', icon: CheckCircle2 },
-    { label: 'Approval queue', value: '0', note: 'Approval gates arrive in Session 6', icon: ShieldCheck },
+    { label: 'Workflow runs', value: String(runs.length), note: 'Persisted run history', icon: Activity },
+    { label: 'Success rate', value: runs.length ? Math.round(successfulRuns / runs.length * 100) + '%' : '—', note: 'Based on loaded run records', icon: CheckCircle2 },
+    { label: 'Failed runs', value: String(failedRuns), note: 'Safe failure codes only', icon: ShieldCheck },
   ];
 
   return (
@@ -110,7 +114,7 @@ function App() {
 
           {apiError && <div className="api-error" role="alert"><strong>Could not complete request</strong><span>{apiError}</span><button className="quiet-button" onClick={() => void refreshRuns()}>Retry connection</button></div>}
 
-          <div className="section-heading"><div><h2>Workspace health</h2><p>Live counts from the mock run API</p></div><button className="quiet-button" onClick={() => void refreshRuns()} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh runs'} <span>↻</span></button></div>
+          <div className="section-heading"><div><h2>Workspace health</h2><p>Persisted run outcomes and safe diagnostics</p></div><button className="quiet-button" onClick={() => void refreshRuns()} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh runs'} <span>↻</span></button></div>
           <div className="metric-grid">{metrics.map(({ label, value, note, icon: Icon }) => <article className="metric-card" key={label}><div className="metric-top"><span>{label}</span><div className="metric-icon"><Icon size={17} /></div></div><div className="metric-value">{value}</div><div className="metric-note">{note}</div></article>)}</div>
           <div className="content-grid">
             <section className="panel runs-panel"><div className="panel-heading"><div><h2>Recent runs</h2><p>Inspect outcomes and execution events</p></div><button className="text-button" onClick={() => void refreshRuns()}>Refresh <ArrowUpRight size={14} /></button></div>
@@ -123,14 +127,14 @@ function App() {
                   <span className={'run-status ' + getRunTone(run.status)}><i />{run.status}</span>
                   <button className="more-button" aria-label={'Inspect ' + run.workflowName} onClick={() => setSelectedRunId(run.id)}>···</button>
                 </article>)}
-              </div><div className="panel-footer">Run records are in-memory for this session; durable persistence is planned for Session 7.</div>
+              </div><div className="panel-footer">Run records, plan snapshots, and timeline events persist in PostgreSQL.</div>
             </section>
             <section className="panel quick-panel"><div className="panel-heading"><div><h2>Start with a template</h2><p>Safe starting points for common work</p></div></div><button className="template-row" onClick={() => { setWorkflowName('Research & synthesize'); setTask('Summarize the main points of this task without calling external tools.'); setShowCreateForm(true); }}><div className="template-icon purple"><Bot size={18} /></div><div><strong>Research & synthesize</strong><small>Gather and summarize a supplied task</small></div><ArrowUpRight size={15} /></button><button className="template-row" onClick={() => { setWorkflowName('Review a change'); setTask('Review this supplied change description and list potential risks.'); setShowCreateForm(true); }}><div className="template-icon teal"><GitBranch size={18} /></div><div><strong>Review a change</strong><small>Inspect a description with bounded checks</small></div><ArrowUpRight size={15} /></button><button className="template-row" onClick={() => { setWorkflowName('Approval workflow'); setTask('Describe the sensitive action that would require human approval.'); setShowCreateForm(true); }}><div className="template-icon amber"><ShieldCheck size={18} /></div><div><strong>Approval workflow</strong><small>Preview a future approval-gated task</small></div><ArrowUpRight size={15} /></button><div className="safety-note"><ShieldCheck size={16} /><span>The mock runner does not call an LLM, execute tools, or perform external side effects.</span></div></section>
           </div>
 
-          {selectedRun && <section className="panel run-detail-panel"><div className="panel-heading"><div><h2>{selectedRun.workflowName}</h2><p>Run {selectedRun.id}</p></div><button className="icon-button" aria-label="Close run details" onClick={() => setSelectedRunId('')}><X size={16} /></button></div><div className="run-detail-body"><span className={'run-status ' + getRunTone(selectedRun.status)}><i />{selectedRun.status}</span><p>{selectedRun.summary}</p><h3>Execution plan</h3><ol className="timeline">{selectedRun.plan.map((step) => <li key={step.order}><time>Step {step.order}</time><strong>{step.title}</strong><span>{step.description}</span><span className="plan-step-status">{step.status}</span></li>)}</ol><h3>Execution timeline</h3><ol className="timeline">{selectedRun.events.map((item) => <li key={item.type}><time>{new Date(item.timestamp).toLocaleTimeString()}</time><strong>{item.type}</strong><span>{item.message}</span></li>)}</ol></div></section>}
+          {selectedRun && <section className="panel run-detail-panel"><div className="panel-heading"><div><h2>{selectedRun.workflowName}</h2><p>Run {selectedRun.id}</p></div><button className="icon-button" aria-label="Close run details" onClick={() => setSelectedRunId('')}><X size={16} /></button></div><div className="run-detail-body"><span className={'run-status ' + getRunTone(selectedRun.status)}><i />{selectedRun.status}</span><p>{selectedRun.summary}</p><div className="diagnostics-grid"><div><span>Execution duration</span><strong>{formatDuration(selectedRun.durationMs)}</strong></div><div><span>Failure classification</span><strong>{formatFailureReason(selectedRun.status, selectedRun.failureReason)}</strong></div><div><span>Token / cost usage</span><strong>Unavailable — no model provider invoked</strong></div></div><h3>Execution plan</h3><ol className="timeline">{selectedRun.plan.map((step) => <li key={step.order}><time>Step {step.order}</time><strong>{step.title}</strong><span>{step.description}</span><span className="plan-step-status">{step.status}</span></li>)}</ol><h3>Execution timeline</h3><ol className="timeline">{selectedRun.events.map((item, index) => <li key={item.type + index}><time>{new Date(item.timestamp).toLocaleTimeString()}</time><strong>{item.type}</strong><span>{item.message}</span></li>)}</ol></div></section>}
 
-          <footer className="page-footer"><span>AGENTFORGE <span className="footer-separator">/</span> OBSERVABILITY FIRST</span><span>Session 3 · Bounded runtime <i /></span></footer>
+          <footer className="page-footer"><span>AGENTFORGE <span className="footer-separator">/</span> OBSERVABILITY FIRST</span><span>Session 8 · Run diagnostics <i /></span></footer>
         </div>
       </section>
     </main>

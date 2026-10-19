@@ -2,7 +2,7 @@
 
 An observable, policy-bounded AI-agent MVP with server-owned tool permissions, human approval gates, and durable run history.
 
-> **Status:** Session 7 is in progress. PostgreSQL/Flyway persistence, run/event repositories, migration verification, and documentation are being added. See [the 14-session plan](docs/14-SESSION-PLAN.md) and [Session 7 report](DAY-7-STATUS.md). Launch readiness will only be claimed after the final clean-install and release gates pass.
+> **Status:** Session 7 is complete and verified. Session 8 adds persisted run diagnostics with safe failure classifications; see [the 14-session plan](docs/14-SESSION-PLAN.md), [Session 7 report](DAY-7-STATUS.md), and [Session 8 report](DAY-8-STATUS.md). Launch readiness will only be claimed after the final clean-install and release gates pass.
 
 ## MVP scope
 
@@ -10,7 +10,8 @@ An observable, policy-bounded AI-agent MVP with server-owned tool permissions, h
 - Explicit server-side tool registry and default-deny allowlist.
 - Bounded payloads, concurrency, queue, and execution deadlines; retries disabled by default.
 - Run-bound, single-use human approvals.
-- PostgreSQL run history and ordered timeline events, versioned by Flyway.
+- PostgreSQL run history, ordered timeline events, and nullable diagnostic fields versioned by Flyway.
+- Safe failure classification codes; raw exception messages are rejected. Mock mode reports duration and model usage as unavailable rather than inventing estimates.
 - Deterministic mocks and automated backend/frontend checks.
 
 No arbitrary shell/code execution, unrestricted network tools, billing, or marketplace are in scope.
@@ -33,7 +34,7 @@ Prerequisites: JDK 21, Maven 3.9+, Node.js 22+, npm, and Docker Compose.
 6. In another terminal, run `cd frontend && npm ci && npm run dev`.
 7. Open the Vite URL (usually `http://localhost:5173`). Health endpoint: `GET http://localhost:8080/api/health`.
 
-For a live OpenAI provider in the later Spring AI session, export `SPRING_AI_OPENAI_API_KEY` in the backend shell. The current run endpoint remains a deterministic mock and makes no external model calls.
+For a live OpenAI provider in the later Spring AI session, export `SPRING_AI_OPENAI_API_KEY` in the backend shell. The current run endpoint remains a deterministic mock and makes no external model calls, so duration, token usage, and cost are not measured.
 
 ## Quality gate
 

@@ -41,7 +41,7 @@ class RunControllerTest {
     }
 
     @Test
-    void createsRunWithPlanAndTimeline() throws Exception {
+    void createsRunWithPlanTimelineAndHonestMockDiagnostics() throws Exception {
         mvc.perform(post("/api/runs").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"workflowName\":\"Research brief\",\"task\":\"Summarize key risks\"}"))
                 .andExpect(status().isCreated())
@@ -50,7 +50,9 @@ class RunControllerTest {
                 .andExpect(jsonPath("$.status").value("Succeeded"))
                 .andExpect(jsonPath("$.plan.length()").value(3))
                 .andExpect(jsonPath("$.events.length()").value(4))
-                .andExpect(jsonPath("$.events[3].type").value("run.succeeded"));
+                .andExpect(jsonPath("$.events[3].type").value("run.succeeded"))
+                .andExpect(jsonPath("$.durationMs").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.failureReason").value(org.hamcrest.Matchers.nullValue()));
     }
 
     @Test
@@ -62,7 +64,8 @@ class RunControllerTest {
         mvc.perform(get("/api/runs")).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].workflowName").value("Triage"));
         mvc.perform(get(location)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.events.length()").value(4));
+                .andExpect(jsonPath("$.events.length()").value(4))
+                .andExpect(jsonPath("$.durationMs").value(org.hamcrest.Matchers.nullValue()));
     }
 
     @Test

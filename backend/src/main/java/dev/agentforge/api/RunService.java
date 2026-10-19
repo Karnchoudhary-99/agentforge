@@ -42,7 +42,9 @@ public class RunService {
                 "Mock execution completed safely for the submitted task. No external model or tools were invoked.",
                 createdAt,
                 plan,
-                List.copyOf(events));
+                List.copyOf(events),
+                null,
+                null);
         persistenceService.save(run);
         return run;
     }

@@ -36,7 +36,7 @@ class RunPersistenceIntegrationTest {
         runRepository.deleteAll();
     }
 
-    @Test void savesAndReloadsRunWithOrderedEvents() {
+    @Test void savesAndReloadsRunWithOrderedEventsAndExplicitlyUnavailableMetrics() {
         RunResponse created = runs.create(new CreateRunRequest("Persist", "Verify event history"));
         assertThat(runRepository.findById(created.id())).isPresent();
         assertThat(eventRepository.findByRunIdOrderByTimestampAscIdAsc(created.id())).hasSize(4);
@@ -44,5 +44,7 @@ class RunPersistenceIntegrationTest {
         assertThat(loaded.plan()).hasSize(3);
         assertThat(loaded.events()).extracting(e -> e.type()).containsExactly(
                 "run.created", "run.started", "plan.prepared", "run.succeeded");
+        assertThat(loaded.durationMs()).isNull();
+        assertThat(loaded.failureReason()).isNull();
     }
 }
