@@ -17,7 +17,7 @@
 4. **Tool registry:** typed tool schemas, allowlist, validation, safe example tools.
 5. **Safety I (complete):** independent default-deny tool policy, serialized input budget, bounded executor pool/queue, execution deadlines, interruption-based timeout cancellation, zero automatic retries, negative tests.
 6. **Safety II + access control (complete):** server-side shared-token gate for tool execution and approval routes; fail-closed configuration; run-bound approval requests; single-use approve/reject/execute; minimal audit events; negative token tests and approval replay tests. This remains a local MVP gate, not production identity.
-7. **Persistence (planned):** PostgreSQL run/event schema via Flyway, JPA repositories, transactional run + event writes, persisted plan snapshots, ordered timeline reads, PostgreSQL Testcontainers integration tests.
+7. **Persistence (in progress; not closed until CI is verified):** PostgreSQL run/event schema via Flyway, JPA repositories, transactional run + event writes, persisted plan snapshots, ordered timeline reads, PostgreSQL Testcontainers integration tests.
 8. **Observability:** richer run details and failure reasons, timeline semantics, token/cost estimates when provider data exists, and safe diagnostic output.
 9. **Workflow UI:** React Flow editor, node/edge validation, accessible forms.
 10. **Templates and live timeline:** reusable templates, SSE or polling fallback, loading/error/empty states.
