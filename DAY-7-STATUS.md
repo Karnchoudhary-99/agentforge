@@ -2,14 +2,14 @@
 
 Date: 2026-10-19  
 Session: 7/14  
-Status: **MERGED; main-branch CI verification pending**  
+Status: **COMPLETE — merged and main CI verified**  
 Pull request: [#2 — PostgreSQL run history and timeline persistence](https://github.com/Karnchoudhary-99/agentforge/pull/2)  
 Merge commit: [adfe322](https://github.com/Karnchoudhary-99/agentforge/commit/adfe32221cc74c05922ed6cccaa9d726e1651c34)
 
 ## Start audit
 - Main HEAD at session start: [75c244a](https://github.com/Karnchoudhary-99/agentforge/commit/75c244ac5c1b1932d2834554da0519e1208d393f), Session 6 closure.
 - Latest main CI at start: [Run #55 — success](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39095248253); backend BUILD SUCCESS with 23 tests, frontend 2 tests and production build passed.
-- Open issues: 0. Session 7 branch was audited along with the session plan and README. Only AgentForge is in scope; PocketLedger artifacts and DevGuard remain untouched.
+- Open issues: 0. Only AgentForge is in scope; PocketLedger artifacts and DevGuard remain untouched.
 
 ## Implemented and merged
 - Added Spring Data JPA, PostgreSQL, Flyway core/PostgreSQL support, and Testcontainers dependencies.
@@ -23,27 +23,30 @@ Merge commit: [adfe322](https://github.com/Karnchoudhary-99/agentforge/commit/ad
 
 ## Verification
 - PR #2 was marked ready for review and squash-merged successfully.
-- Actual PR CI [Run #57](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39263234437): both jobs completed successfully. Backend Java 21 Maven verification passed; prior inspected backend run recorded 22 tests, 0 failures, 0 errors, 0 skipped including PostgreSQL Testcontainers. Frontend 2 Vitest tests and production build passed.
-- Merge commit: [adfe322](https://github.com/Karnchoudhary-99/agentforge/commit/adfe32221cc74c05922ed6cccaa9d726e1651c34).
-- Post-merge workflow query returned no run for the merge commit at the time checked. Therefore main-branch CI is **not yet verified** and Session 7 is not marked complete.
-- Local Maven/npm execution was not available in this runtime due to GitHub DNS resolution failure; verification comes from actual GitHub-hosted CI.
+- PR CI [Run #57](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39263234437): backend and frontend jobs passed.
+- Main CI [Run #59](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39264501198) on status-report commit [4106926](https://github.com/Karnchoudhary-99/agentforge/commit/4106926cfe481bb2da2b5922832197e2aec09291): **both required jobs completed successfully**.
+- Backend log inspected: Java 21 Maven verification, **22 tests, 0 failures, 0 errors, 0 skipped**, including PostgreSQL Testcontainers integration; `BUILD SUCCESS`.
+- Frontend log inspected: `npm ci`, **2 Vitest tests passed**, `npm run build` successful.
+- Main CI Run #58 for merge commit was cancelled when a newer push superseded it; Run #59 on the latest main commit is green and is the authoritative verification.
+- Non-blocking warnings remain: Flyway metadata HTTP 401, deprecated `@MockBean`, Node/punycode deprecations, and GitHub Actions Node runtime deprecation. No job failed.
+- Local Maven/npm execution was not available in this runtime due to GitHub DNS resolution failure; actual GitHub-hosted CI is verified.
 
 ## Progress and estimate
-- Sessions fully closed before this session: 6/14 (~43%).
-- Session 7 implementation is merged and PR CI is green. Closure is waiting only for a confirmed main-branch CI result.
-- Flexible estimate: around 2026-10-26 if one verified session is completed per day after closure; not a guarantee.
+- **7/14 sessions complete (50%).**
+- Session 7 is closed: planned implementation/docs are merged, PR CI passed, main CI is green, and test logs were inspected.
+- Flexible estimate: around 2026-10-26 if one verified session is completed per day; not a guarantee.
 
 ## Known issues / limitations
 - Approval decisions and audit events remain in-memory until later hardening.
 - Runtime is still a deterministic mock and does not call an external LLM.
 - API token is a shared-secret gate, not production identity/RBAC; do not expose publicly.
-- Maven emitted a non-fatal HTTP 401 warning while querying optional Flyway repository metadata; dependency resolution and Maven verification nevertheless completed successfully. Revisit if it becomes a build blocker.
-- Local checks were not run in this runtime; GitHub Actions is the verified test environment.
+- Review the non-blocking dependency/action deprecation warnings during a later maintenance/security pass.
 
-## Resume checklist
-1. Inspect GitHub Actions for merge commit [adfe322](https://github.com/Karnchoudhary-99/agentforge/commit/adfe32221cc74c05922ed6cccaa9d726e1651c34); wait for and inspect backend/frontend job conclusions and logs.
-2. If main CI is green, update this report with the run link and mark Session 7 complete.
-3. If main CI fails, diagnose/fix on AgentForge only, add regression tests, and rerun until green.
-4. Then begin Session 8: observability, run details, safe failure reasons, and timeline diagnostics; update the next-session checklist before starting.
+## Next session — Session 8: Observability
+- Inspect latest main state, workflow runs, status report, open issues, and last commit before changes.
+- Add useful run detail and timeline diagnostics, safe failure reasons, and token/cost estimates only when provider data exists.
+- Add/adjust backend and frontend tests; never expose secrets or raw sensitive exception details.
+- Update README/API/architecture docs as needed.
+- Run tests/build, inspect actual GitHub Actions job results/logs, fix failures, and update this report only after verification.
 
 PocketLedger remains stopped and untouched. DevGuard remains frozen and untouched.
