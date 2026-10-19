@@ -68,7 +68,7 @@ class RunControllerTest {
     @Test
     void rejectsInvalidInputAndUnknownRun() throws Exception {
         mvc.perform(post("/api/runs").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"workflowName\":\" ",\"task\":\"Do work\"}"))
+                        .content("{\"workflowName\":\" \",\"task\":\"Do work\"}"))
                 .andExpect(status().isBadRequest());
         mvc.perform(get("/api/runs/00000000-0000-0000-0000-000000000000"))
                 .andExpect(status().isNotFound());
