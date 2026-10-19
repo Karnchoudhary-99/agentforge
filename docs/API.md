@@ -9,7 +9,7 @@ Local base URL: `http://localhost:8080`. The Vite development server proxies `/a
 - The deterministic mock transitions `QUEUED → RUNNING → SUCCEEDED`, returns a three-step plan, and records four events: `run.created`, `run.started`, `plan.prepared`, and `run.succeeded`.
 - Invalid bodies return `400 Bad Request`.
 - `GET /api/runs` returns persisted runs newest first; `GET /api/runs/{uuid}` returns the run with its plan and ordered timeline or `404 Not Found`.
-- PostgreSQL is the source of truth. Flyway applies versioned migrations at startup; Hibernate validates the schema. There is no silent in-memory fallback if PostgreSQL is unavailable.
+- PostgreSQL is the source of truth. Flyway applies versioned migrations at startup; Hibernate validates the schema. There is no silent in-memory fallback if PostgreSQL is unavailable. Migration V2 adds nullable `durationMs` and `failureReason` diagnostics to run records.
 
 ## Tool execution and approvals
 
@@ -24,6 +24,6 @@ Local base URL: `http://localhost:8080`. The Vite development server proxies `/a
 
 ## Run response and state machine
 
-A run response contains `id`, `workflowName`, `task`, `status`, `summary`, `createdAt`, `plan`, and `events`. Plan steps expose order, title, description, and status. The mock runtime is synchronous and does not invoke a live LLM or external tools.
+A run response contains `id`, `workflowName`, `task`, `status`, `summary`, `createdAt`, `plan`, `events`, `durationMs`, and `failureReason`. Plan steps expose order, title, description, and status. `durationMs` is nullable and must be non-negative when measured. `failureReason` is nullable and only accepts `TIMEOUT`, `PROVIDER_UNAVAILABLE`, `OUTPUT_INVALID`, `POLICY_DENIED`, or `UNKNOWN`; raw exception text, tokens, prompts, and credentials must never be stored as failure reasons. In deterministic mock mode, both diagnostic fields are `null` and the UI explicitly says usage metrics are unavailable. Token/cost fields are intentionally omitted until a real provider supplies trustworthy usage data. The mock runtime is synchronous and does not invoke a live LLM or external tools.
 
 Allowed transitions are `QUEUED → RUNNING/CANCELLED`, `RUNNING → SUCCEEDED/FAILED/CANCELLED`, and no transitions from terminal states. Full asynchronous run cancellation is not yet wired to the HTTP endpoints.
