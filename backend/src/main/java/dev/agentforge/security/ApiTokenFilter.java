@@ -8,17 +8,21 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** Protects state-changing tool and approval routes with a server-configured shared token. */
 @Component
 public class ApiTokenFilter extends OncePerRequestFilter {
     private final String configuredToken;
 
-    public ApiTokenFilter(@Value("${agentforge.security.api-token:}") String configuredToken) {
-        this.configuredToken = configuredToken;
+    public ApiTokenFilter(
+            @Value("${agentforge.security.api-token:}") String configuredToken,
+            Environment environment) {
+        String environmentToken = environment.getProperty("AGENTFORGE_API_TOKEN", "");
+        this.configuredToken = configuredToken == null || configuredToken.isBlank()
+                ? environmentToken : configuredToken;
     }
 
     @Override

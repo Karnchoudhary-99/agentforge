@@ -2,21 +2,19 @@ package dev.agentforge.api;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RunService {
-    private final Map<UUID, RunResponse> runs = new ConcurrentHashMap<>();
     private final TaskPlanner taskPlanner;
+    private final RunPersistenceService persistenceService;
 
-    public RunService(TaskPlanner taskPlanner) {
+    public RunService(TaskPlanner taskPlanner, RunPersistenceService persistenceService) {
         this.taskPlanner = taskPlanner;
+        this.persistenceService = persistenceService;
     }
 
     public RunResponse create(CreateRunRequest request) {
@@ -45,17 +43,15 @@ public class RunService {
                 createdAt,
                 plan,
                 List.copyOf(events));
-        runs.put(id, run);
+        persistenceService.save(run);
         return run;
     }
 
     public List<RunResponse> list() {
-        return runs.values().stream()
-                .sorted(Comparator.comparing(RunResponse::createdAt).reversed())
-                .toList();
+        return persistenceService.list();
     }
 
     public Optional<RunResponse> find(UUID id) {
-        return Optional.ofNullable(runs.get(id));
+        return persistenceService.find(id);
     }
 }
