@@ -2,7 +2,7 @@
 
 An observable, policy-bounded AI-agent MVP with server-owned tool permissions, human approval gates, and durable run history.
 
-> **Status:** Session 7 is complete and verified. Session 8 adds persisted run diagnostics with safe failure classifications; see [the 14-session plan](docs/14-SESSION-PLAN.md), [Session 7 report](DAY-7-STATUS.md), and [Session 8 report](DAY-8-STATUS.md). Launch readiness will only be claimed after the final clean-install and release gates pass.
+> **Status:** Sessions 7 and 8 are complete and CI-verified. Run diagnostics include safe failure classifications; duration and provider usage remain unavailable in mock mode. See [the 14-session plan](docs/14-SESSION-PLAN.md), [Session 7 report](DAY-7-STATUS.md), and [Session 8 report](DAY-8-STATUS.md). Launch readiness will only be claimed after the final clean-install and release gates pass.
 
 ## MVP scope
 
