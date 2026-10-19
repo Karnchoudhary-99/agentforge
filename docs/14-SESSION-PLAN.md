@@ -1,6 +1,6 @@
 # AgentForge — 14-session delivery plan
 
-**Target:** a launch-ready, portfolio-quality MVP by Session 14, with a reproducible setup, tests, documentation, security review, and green CI. Session count tracks completed work sessions; it is not a promise of unattended background execution.
+**Target:** a launch-ready, portfolio-quality MVP by Session 14, with reproducible setup, tests, documentation, security review, and green CI. Session count tracks completed work sessions; it is not a promise of unattended background execution.
 
 ## Release scope
 - Single workspace, curated workflow templates, one external LLM provider.
@@ -16,9 +16,9 @@
 3. **Agent runtime:** structured task plan, bounded orchestration, state transitions.
 4. **Tool registry:** typed tool schemas, allowlist, validation, safe example tools.
 5. **Safety I (complete):** independent default-deny tool policy, serialized input budget, bounded executor pool/queue, execution deadlines, interruption-based timeout cancellation, zero automatic retries, negative tests.
-6. **Safety II + access control (complete):** server-side shared-token gate for tool execution and approval routes; fail-closed configuration; run-bound approval requests; single-use approve/reject/execute; minimal audit events; negative token tests and approval replay tests. Branch CI passed; do not expose publicly because this is not production identity and persistence is still in-memory.
-7. **Persistence:** PostgreSQL schema/migrations, run and event repositories.
-8. **Observability:** timeline events, run details, failure reasons, token/cost estimates when provider data exists.
+6. **Safety II + access control (complete):** server-side shared-token gate for tool execution and approval routes; fail-closed configuration; run-bound approval requests; single-use approve/reject/execute; minimal audit events; negative token tests and approval replay tests. This remains a local MVP gate, not production identity.
+7. **Persistence (planned):** PostgreSQL run/event schema via Flyway, JPA repositories, transactional run + event writes, persisted plan snapshots, ordered timeline reads, PostgreSQL Testcontainers integration tests.
+8. **Observability:** richer run details and failure reasons, timeline semantics, token/cost estimates when provider data exists, and safe diagnostic output.
 9. **Workflow UI:** React Flow editor, node/edge validation, accessible forms.
 10. **Templates and live timeline:** reusable templates, SSE or polling fallback, loading/error/empty states.
 11. **Spring AI integration:** server-side provider configuration, structured output, provider failure handling.
