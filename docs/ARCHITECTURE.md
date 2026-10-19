@@ -6,12 +6,13 @@ React + TypeScript UI → Spring Boot REST API → validation → bounded planne
 
 ## Persistence boundary
 
-- `agent_runs` stores run ID, workflow/task snapshot, status, summary, creation time, and serialized plan snapshot.
+- `agent_runs` stores run ID, workflow/task snapshot, status, summary, creation time, serialized plan snapshot, and nullable `duration_ms` / `failure_reason` diagnostics.
 - `run_events` stores each timeline event as a row linked to its run with a foreign key and cascade delete.
 - Flyway migrations are the schema source of truth; Hibernate runs in `validate` mode and does not create or mutate tables.
 - Saving a run and its initial events is transactional. If event insertion fails, the run insert rolls back.
 - Run lists are ordered newest-first and include ordered events. Individual reads load only one run's events.
 - PostgreSQL is required; there is no silent volatile-storage fallback. Approval decisions and audit events remain in-memory for now.
+- Failure reasons are allowlisted diagnostic codes, never raw exception messages. Duration and provider token/cost metrics remain null/unavailable when the deterministic mock cannot measure them; the UI must not fabricate estimates.
 
 ## Tool execution safety
 
