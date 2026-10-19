@@ -1,53 +1,40 @@
 # AgentForge
 
-**An observable, policy-bounded AI agent platform with human approval gates.** AgentForge helps teams define and run controlled AI workflows with registered tools, explicit approval for sensitive actions, durable execution history, and evaluation. It is intentionally more than a chat UI: the application, not the model, owns tool permissions and execution.
+An observable, policy-bounded AI-agent MVP with server-owned tool permissions, human approval gates, and durable run history.
 
-> **Project status:** Session 6 complete — deterministic bounded runtime, server-owned tool registry and policy, fail-closed API-token gate, run-bound single-use approval flow, and minimal audit events. Session 7 adds durable persistence. The 14-session MVP plan is tracked in [docs/14-SESSION-PLAN.md](docs/14-SESSION-PLAN.md). Release readiness will only be claimed after required tests, security checks, setup verification, and GitHub Actions are green.
+> **Status:** Session 7 is in progress. PostgreSQL/Flyway persistence, run/event repositories, migration verification, and documentation are being added. See [the 14-session plan](docs/14-SESSION-PLAN.md) and [Session 7 report](DAY-7-STATUS.md). Launch readiness will only be claimed after the final clean-install and release gates pass.
 
-## MVP promise
+## MVP scope
 
-By the end of Session 14, the intended release will provide:
-- A React + TypeScript workspace to create and run bounded agent workflows.
-- A Java 21 / Spring Boot API with a clear agent orchestration boundary.
-- Spring AI integration with one external model provider, configured only on the server.
-- Explicit tool allowlists, schema validation, execution limits, and human approval for sensitive actions.
-- PostgreSQL-backed run history and execution events.
-- A live execution timeline, reproducible evaluation fixtures, and a documented local deployment.
-- Automated backend/frontend CI and end-to-end verification.
+- Java 21, Spring Boot, Spring AI (server-side provider), React, TypeScript, Vite, and React Flow.
+- Explicit server-side tool registry and default-deny allowlist.
+- Bounded payloads, concurrency, queue, and execution deadlines; retries disabled by default.
+- Run-bound, single-use human approvals.
+- PostgreSQL run history and ordered timeline events, versioned by Flyway.
+- Deterministic mocks and automated backend/frontend checks.
 
-Scope is deliberately bounded: one workspace, curated tools, one model provider for the first release. No arbitrary code execution, unrestricted shell, open-ended network access, billing, or plugin marketplace.
+No arbitrary shell/code execution, unrestricted network tools, billing, or marketplace are in scope.
 
-## Technology
+## Safety boundaries
 
-- Java 21, Spring Boot, Spring AI, Bean Validation
-- React, TypeScript, Vite, React Flow
-- PostgreSQL; optional Redis only if a measured requirement justifies it
-- JUnit 5, Mockito, Testcontainers, Vitest, Playwright
-- Docker Compose, GitHub Actions, OpenAPI
+Only server-registered and policy-allowed tools can execute. The example tool is `text.word-count`; no shell, filesystem, or arbitrary network tool exists. Tool execution and approval endpoints require the server-side `AGENTFORGE_API_TOKEN` via the `X-AgentForge-Token` header. This is a minimal shared-secret gate, not user identity or role-based authorization. Do not expose the service publicly.
 
-## Architecture and safety
-
-The model proposes structured actions; server-side policy validates every action before execution. Tools are explicitly registered and allowlisted. Sensitive actions pause for human approval. Tool inputs are validated, execution has bounded steps/timeouts/retries, and results are recorded as evidence. Provider keys remain in backend environment variables and must never be placed in browser code, checked into Git, or included in logs.
-
-Tool execution defaults to the server-side `text.word-count` allowlist, an 8 KiB serialized input cap, a 2-second deadline, at most 4 concurrent workers, and a bounded queue of 16. Automatic retries are disabled until tools declare safe idempotency semantics. Tool execution and approval routes require the server-configured `AGENTFORGE_API_TOKEN`. This is a minimal shared-secret gate, not production identity or role-based authorization; do not expose the service publicly.
-
-See [architecture](docs/ARCHITECTURE.md), [session plan](docs/14-SESSION-PLAN.md), [project switch record](docs/PROJECT-SWITCH-RECORD.md), and [API reference](docs/API.md).
+Run records, plan snapshots, and timeline events are stored in PostgreSQL. Approval decisions and audit events remain in-memory until a later hardening session. Provider credentials must stay in backend environment configuration and must never be committed or logged.
 
 ## Local development
 
 Prerequisites: JDK 21, Maven 3.9+, Node.js 22+, npm, and Docker Compose.
 
-1. Copy `.env.example` to `.env`, set a strong `AGENTFORGE_API_TOKEN` before using tool/approval endpoints, and set a model API key only if using live model calls. Keep `.env` private and never commit real secrets.
-2. Start services: `docker compose up -d postgres`.
-3. Run the API: `cd backend && mvn spring-boot:run`.
-4. Run the UI: `cd frontend && npm ci && npm run dev`.
-5. Open the Vite URL (usually `http://localhost:5173`). The Vite dev server proxies `/api/*` to the API on port 8080.
-6. Health endpoint: `GET http://localhost:8080/api/health`.
+1. Copy `.env.example` to `.env`.
+2. From the repository root, load local variables into the current shell: `set -a; . ./.env; set +a`.
+3. Set a fresh local access token: `export AGENTFORGE_API_TOKEN="$(openssl rand -hex 32)"`. Never commit that value.
+4. Start PostgreSQL: `docker compose up -d postgres`.
+5. Start the API in the same shell: `cd backend && mvn spring-boot:run`. Flyway applies migrations; Hibernate validates the schema.
+6. In another terminal, run `cd frontend && npm ci && npm run dev`.
+7. Open the Vite URL (usually `http://localhost:5173`). Health endpoint: `GET http://localhost:8080/api/health`.
 
-The mock run endpoints are documented in [docs/API.md](docs/API.md). Runs are in-memory only until the persistence session; restarting the API clears them. The mock executor does not call an external model or access external services. The `text.word-count` example tool is registered server-side and has a strict input schema.
+For a live OpenAI provider in the later Spring AI session, export `SPRING_AI_OPENAI_API_KEY` in the backend shell. The current run endpoint remains a deterministic mock and makes no external model calls.
 
-Never commit `.env` or credentials. The exact available endpoints and commands will evolve as the MVP is implemented; consult this README and the session status report for the current verified state.
+## Quality gate
 
-## Development quality gate
-
-A session is not complete until its planned changes are present, tests and verification have been run, failures have been fixed or explicitly blocked by a documented external dependency, and CI is green. A green CI badge alone is not a substitute for functional/security review.
+A session is complete only after its planned code/docs, backend and frontend checks, actual GitHub Actions results/logs, and progress report are verified. CI green does not by itself mean the product is launch-ready.

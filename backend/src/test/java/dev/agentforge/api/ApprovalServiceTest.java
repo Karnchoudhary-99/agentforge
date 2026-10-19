@@ -12,7 +12,7 @@ class ApprovalServiceTest {
 
     @Test
     void approvalMustBePendingAndExecutionIsSingleUse() throws Exception {
-        RunService runs = new RunService(new TaskPlanner());
+        RunService runs = new RunService(new TaskPlanner(), new InMemoryRunPersistenceService());
         RunResponse run = runs.create(new CreateRunRequest("test", "validate approval flow"));
         ToolRegistry registry = new ToolRegistry(List.of(new WordCountTool()));
         ToolExecutionPolicy policy = new ToolExecutionPolicy("text.word-count", 8192);
@@ -34,7 +34,7 @@ class ApprovalServiceTest {
 
     @Test
     void rejectedApprovalCannotExecuteAndUnknownRunCannotRequestApproval() throws Exception {
-        RunService runs = new RunService(new TaskPlanner());
+        RunService runs = new RunService(new TaskPlanner(), new InMemoryRunPersistenceService());
         ToolRegistry registry = new ToolRegistry(List.of(new WordCountTool()));
         ToolExecutionPolicy policy = new ToolExecutionPolicy("text.word-count", 8192);
         try (ToolExecutionService tools = new ToolExecutionService(

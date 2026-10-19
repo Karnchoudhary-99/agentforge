@@ -2,32 +2,40 @@
 
 ## Request path
 
-React + TypeScript UI → Spring Boot REST API → request validation → agent orchestrator → structured plan → independent tool execution policy → approval gate (where required) → registered tool executor / server-side Spring AI provider → output validation → persisted run/events → UI timeline.
+React + TypeScript UI → Spring Boot REST API → validation → bounded planner → server-owned tool policy → approval gate when required → registered tool executor / server-side Spring AI provider → output validation → PostgreSQL run/event repositories → UI timeline.
 
-## Tool execution safety boundary
+## Persistence boundary
 
-The server-owned `ToolRegistry` determines which tool implementations exist. The independent `ToolExecutionPolicy` then default-denies any registered tool not explicitly named in `AGENTFORGE_ALLOWED_TOOLS`. Listing and execution use the same policy so denied tools are not advertised. Tool input is measured as serialized UTF-8 JSON before execution; the default maximum is 8 KiB. Calls run in a fixed-size worker pool with a bounded queue and a deadline; saturation is rejected rather than creating unbounded threads. A deadline cancels the future with thread interruption. Tool implementations must cooperate with interruption, since the JVM cannot safely force-stop non-cooperative code. Automatic retries are disabled until idempotency semantics are explicit.
+- `agent_runs` stores run ID, workflow/task snapshot, status, summary, creation time, and serialized plan snapshot.
+- `run_events` stores each timeline event as a row linked to its run with a foreign key and cascade delete.
+- Flyway migrations are the schema source of truth; Hibernate runs in `validate` mode and does not create or mutate tables.
+- Saving a run and its initial events is transactional. If event insertion fails, the run insert rolls back.
+- Run lists are ordered newest-first and include ordered events. Individual reads load only one run's events.
+- PostgreSQL is required; there is no silent volatile-storage fallback. Approval decisions and audit events remain in-memory for now.
 
-Current development defaults: allow only `text.word-count`, 8 KiB input, 2-second deadline, 4 concurrent workers, queue capacity 16, and retry budget zero. Invalid limit configuration fails startup. Tool execution and approval routes are protected by the `AGENTFORGE_API_TOKEN` shared-secret gate and fail closed when it is unset. This is not production identity or role-based authorization; do not expose the service publicly.
+## Tool execution safety
+
+The server-owned `ToolRegistry` determines which implementations exist. The independent `ToolExecutionPolicy` default-denies any registered tool not explicitly named in `AGENTFORGE_ALLOWED_TOOLS`. Listing and execution share the same policy. Serialized UTF-8 input is capped at 8 KiB; calls run in a fixed worker pool with a bounded queue and a deadline. Saturation is rejected rather than creating unbounded threads. Deadlines interrupt the worker; tool code must cooperate. Automatic retries remain disabled until idempotency is explicit.
+
+Defaults: allow only `text.word-count`, 8 KiB input, 2-second deadline, 4 workers, queue capacity 16, and zero retries. Tool execution and approval routes require the server-side `AGENTFORGE_API_TOKEN` via a shared-token gate. It is not production identity or role-based authorization; do not expose the service publicly.
 
 ## Trust boundaries
 
-- The LLM is an untrusted planner, not an authorization authority.
-- Only explicitly registered and policy-allowed tools can execute; model output never maps directly to shell, filesystem, raw SQL, or arbitrary URLs.
-- Validate structured input on the server. Apply step count, timeout, payload-size, concurrency, and retry limits.
-- Require explicit human approval for side effects. Approval is bound to a run/action and expires according to server policy.
-- Persist run state transitions and tool results for auditability; redact secrets and sensitive headers.
-- Keep provider credentials server-side in environment/deployment secrets. Never expose them to React or logs.
-- Use deterministic fake providers and tools in CI so tests do not need paid API credentials.
+- The LLM is an untrusted planner, never an authorization authority.
+- Model output cannot map directly to shell, arbitrary code, filesystem access, raw SQL, or arbitrary URLs.
+- Validate all structured inputs and bound steps, time, payloads, concurrency, and retries.
+- Require explicit human approval for sensitive side effects.
+- Keep provider credentials server-side; never expose them to React or logs.
+- Use deterministic mocks in CI so tests do not require paid provider credentials.
 
-## Initial module boundaries
+## Module boundaries
 
-- `api`: versioned REST controllers and request/response DTOs.
-- `agent`: orchestration, run state machine, plan parsing.
-- `policy`: tool allowlist, validation, approval decisions and limits.
-- `tools`: typed, registered tools with least privilege.
-- `provider`: Spring AI adapter and mock adapter.
+- `api`: REST controllers and DTOs.
+- `agent`: orchestration, planning, state machine.
+- `policy`: allowlist, validation, approval decisions and limits.
+- `tools`: registered least-privilege tools.
+- `provider`: Spring AI and mock adapters.
 - `persistence`: run/event repositories and migrations.
 - `evaluation`: fixtures, scoring and regression tests.
 
-Modules are introduced incrementally as the behavior becomes testable; avoid speculative abstractions before the vertical slice exists.
+Introduce modules as behavior becomes testable; avoid speculative abstractions before the vertical slice exists.
