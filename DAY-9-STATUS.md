@@ -38,7 +38,7 @@ Status: **COMPLETE — PR CI and post-merge main CI passed**
 - The graph is not submitted to the execution API.
 - A client-visible tool catalog entry never grants permission; backend allowlist and approvals remain authoritative.
 - Runtime is deterministic mock mode; live provider integration is planned for Session 11.
-- New feature tests/build have not been confirmed by CI or local execution.
+- New feature tests/build were confirmed by final PR CI Run #69 and post-merge main CI Run #70; current main CI Run #73 also passed. Local execution remains unavailable because this runtime cannot resolve `github.com` (DNS resolution failure).
 
 ## Closure checklist
 1. Workflow editor changes merged in PR #4.
