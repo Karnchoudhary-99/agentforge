@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Edge, Node } from 'reactflow';
 import { MAX_WORKFLOW_NODES, validateWorkflowGraph, type WorkflowNodeData } from './workflow-graph';
 
-const node = (id: string, kind: WorkflowNodeData['kind'], label = kind, toolName?: string): Node<WorkflowNodeData> => ({
+const node = (id: string, kind: WorkflowNodeData['kind'], label: string = kind, toolName?: string): Node<WorkflowNodeData> => ({
   id, type: 'default', position: { x: 0, y: 0 },
   data: { kind, label, description: 'Draft step', ...(toolName ? { toolName } : {}) },
 });
