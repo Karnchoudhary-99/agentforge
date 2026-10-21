@@ -19,7 +19,7 @@
 6. **Safety II + access control (complete):** server-side shared-token gate for tool execution and approval routes; fail-closed configuration; run-bound approval requests; single-use approve/reject/execute; minimal audit events; negative token tests and approval replay tests. This remains a local MVP gate, not production identity.
 7. **Persistence (complete):** PostgreSQL run/event schema via Flyway, JPA repositories, transactional run + event writes, persisted plan snapshots, ordered timeline reads, PostgreSQL Testcontainers integration tests.
 8. **Observability (complete):** richer run details and failure reasons, timeline semantics, token/cost estimates when provider data exists, and safe diagnostic output.
-9. **Workflow UI:** React Flow editor, node/edge validation, accessible forms.
+9. **Workflow UI (in progress):** React Flow editor, bounded node/edge validation, accessible node inspector, and explicit client-draft/server-policy boundary.
 10. **Templates and live timeline:** reusable templates, SSE or polling fallback, loading/error/empty states.
 11. **Spring AI integration:** server-side provider configuration, structured output, provider failure handling.
 12. **Evaluation and security tests:** golden test cases, deterministic mocks, prompt-injection/tool-boundary tests, output validation.
