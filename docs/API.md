@@ -27,3 +27,8 @@ Local base URL: `http://localhost:8080`. The Vite development server proxies `/a
 A run response contains `id`, `workflowName`, `task`, `status`, `summary`, `createdAt`, `plan`, `events`, `durationMs`, and `failureReason`. Plan steps expose order, title, description, and status. `durationMs` is nullable and must be non-negative when measured. `failureReason` is nullable and only accepts `TIMEOUT`, `PROVIDER_UNAVAILABLE`, `OUTPUT_INVALID`, `POLICY_DENIED`, or `UNKNOWN`; raw exception text, tokens, prompts, and credentials must never be stored as failure reasons. In deterministic mock mode, both diagnostic fields are `null` and the UI explicitly says usage metrics are unavailable. Token/cost fields are intentionally omitted until a real provider supplies trustworthy usage data. The mock runtime is synchronous and does not invoke a live LLM or external tools.
 
 Allowed transitions are `QUEUED → RUNNING/CANCELLED`, `RUNNING → SUCCEEDED/FAILED/CANCELLED`, and no transitions from terminal states. Full asynchronous run cancellation is not yet wired to the HTTP endpoints.
+
+
+## Live dashboard refresh (Session 10)
+
+The React dashboard polls `GET /api/runs` every 5 seconds while the browser tab is visible. When a run is selected, it refreshes `GET /api/runs/{id}` and its ordered timeline every 3 seconds. Requests are aborted when the view unmounts; polling pauses for hidden tabs and never starts or retries execution. Manual refresh remains available. Initial loading, empty history, validation errors, authorization errors, missing runs, and backend unavailability have explicit UI messages. This is client-side polling, not an SSE guarantee.

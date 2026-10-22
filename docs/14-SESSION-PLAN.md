@@ -20,7 +20,7 @@
 7. **Persistence (complete):** PostgreSQL run/event schema via Flyway, JPA repositories, transactional run + event writes, persisted plan snapshots, ordered timeline reads, PostgreSQL Testcontainers integration tests.
 8. **Observability (complete):** richer run details and failure reasons, timeline semantics, token/cost estimates when provider data exists, and safe diagnostic output.
 9. **Workflow UI (complete):** React Flow draft editor, bounded node/edge validation, accessible node inspector, server-policy boundary, graph validation tests, and green PR/main CI.
-10. **Templates and live timeline:** reusable templates, SSE or polling fallback, loading/error/empty states.
+10. **Templates and live timeline (in progress):** curated reusable templates that only prefill bounded form inputs; read-only polling fallback for persisted run history and selected-run timeline; loading/error/empty states and client tests.
 11. **Spring AI integration:** server-side provider configuration, structured output, provider failure handling.
 12. **Evaluation and security tests:** golden test cases, deterministic mocks, prompt-injection/tool-boundary tests, output validation.
 13. **Release candidate:** E2E tests, dependency/security review, Docker clean-start, OpenAPI, demo data/screenshots.

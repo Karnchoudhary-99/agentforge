@@ -40,3 +40,8 @@ Defaults: allow only `text.word-count`, 8 KiB input, 2-second deadline, 4 worker
 - `evaluation`: fixtures, scoring and regression tests.
 
 Introduce modules as behavior becomes testable; avoid speculative abstractions before the vertical slice exists.
+
+
+## Session 10: templates and live read model
+
+Curated frontend templates are local presets that prefill only the workflow name and task fields. They do not contain executable code or grant tool permissions. The dashboard uses read-only polling against persisted run endpoints: history every 5 seconds and the selected run/timeline every 3 seconds while the tab is visible. Abort controllers and in-flight guards limit unnecessary overlapping requests; polling never replays a POST or performs execution. The backend remains the source of truth for state, events, policy, and approvals.

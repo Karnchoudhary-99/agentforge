@@ -2,7 +2,7 @@
 
 An observable, policy-bounded AI-agent MVP with server-owned tool permissions, human approval gates, and durable run history.
 
-> **Status:** Sessions 7–9 are complete and CI-verified. Session 9 adds a React Flow workflow-draft editor with bounded graph validation; drafts are not executed and server policy remains authoritative. See [the 14-session plan](docs/14-SESSION-PLAN.md), [Session 7 report](DAY-7-STATUS.md), [Session 8 report](DAY-8-STATUS.md), and [Session 9 report](DAY-9-STATUS.md). Launch readiness will only be claimed after the final clean-install and release gates pass.
+> **Status:** Sessions 7–9 are complete and CI-verified. Session 10 is in progress: curated templates and read-only polling for run history and selected-run timelines. Templates only prefill the form; server policy remains authoritative. See the 14-session plan and the Session 7–10 status reports. Launch readiness will only be claimed after the final clean-install and release gates pass.
 
 ## MVP scope
 

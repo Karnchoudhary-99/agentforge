@@ -19,3 +19,9 @@
 /* Session 8: clear, responsive diagnostic metadata. */
 .diagnostics-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0 22px}.diagnostics-grid>div{display:flex;flex-direction:column;gap:8px;min-width:0;border:1px solid #303247;background:#1b1d2b;border-radius:8px;padding:12px}.diagnostics-grid span{font-size:10px;color:#858aa2}.diagnostics-grid strong{font-size:11px;line-height:1.5;color:#dce0f1;overflow-wrap:anywhere;font-weight:600}
 @media(max-width:800px){.diagnostics-grid{grid-template-columns:1fr}.page-content{padding:28px 20px}.topbar{padding:0 20px}.sidebar{width:76px;padding:20px 8px}.sidebar .brand>span,.workspace-label,.nav-item:not(.active),.sidebar-bottom>div:not(.avatar),.sidebar-bottom .online-dot{display:none}.sidebar .brand{padding:0 10px 30px}.nav-item{font-size:0;justify-content:center;padding:12px}.content-grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:1fr}}
+
+
+/* Session 10: live polling affordances and reusable-template status. */
+.live-indicator{display:inline-flex;align-items:center;gap:6px;margin-left:8px;border:1px solid #315447;background:#1a302a;color:#7de0b2;border-radius:999px;padding:4px 7px;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:0;vertical-align:middle}
+.live-indicator:before{content:'';width:5px;height:5px;border-radius:50%;background:#62d7a2;box-shadow:0 0 0 3px #62d7a21c}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}

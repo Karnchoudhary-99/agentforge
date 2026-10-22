@@ -2,25 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Activity, ArrowUpRight, Bot, CheckCircle2, CirclePlay, Clock3, GitBranch, ShieldCheck, Workflow, X, LoaderCircle } from 'lucide-react';
 import { getRunTone } from './run-status';
+import { createRun, getApiErrorMessage, getRun, listRuns, type Run } from './run-api';
+import { WORKFLOW_TEMPLATES } from './workflow-templates';
 import { formatDuration, formatFailureReason } from './run-diagnostics';
 import { WorkflowEditor } from './workflow-editor';
 import './workflow-editor.css';
 import './style.css';
-
-type RunEvent = { timestamp: string; type: string; message: string };
-type PlanStep = { order: number; title: string; description: string; status: string };
-type Run = {
-  id: string;
-  workflowName: string;
-  task: string;
-  status: string;
-  summary: string;
-  createdAt: string;
-  plan: PlanStep[];
-  events: RunEvent[];
-  durationMs: number | null;
-  failureReason: 'TIMEOUT' | 'PROVIDER_UNAVAILABLE' | 'OUTPUT_INVALID' | 'POLICY_DENIED' | 'UNKNOWN' | null;
-};
 
 function App() {
   const [runs, setRuns] = useState<Run[]>([]);
@@ -33,44 +20,59 @@ function App() {
   const [selectedRunId, setSelectedRunId] = useState('');
   const [activeView, setActiveView] = useState<'overview' | 'workflows'>('overview');
 
-  const refreshRuns = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/runs');
-      if (!response.ok) throw new Error('API returned ' + response.status);
-      const data = await response.json() as Run[];
-      setRuns(data);
-      setApiError('');
-    } catch {
-      setApiError('Backend API unavailable. Start the Spring Boot API on port 8080, then refresh.');
-    } finally {
-      setLoading(false);
-    }
+  const refreshRuns = async (options: { silent?: boolean; signal?: AbortSignal } = {}) => {
+    if (!options.silent) { setLoading(true); setApiError(''); }
+    try { setRuns(await listRuns(options.signal)); }
+    catch (error) { if (!options.signal?.aborted) setApiError(getApiErrorMessage(error, 'history')); }
+    finally { if (!options.silent) setLoading(false); }
   };
 
-  useEffect(() => { void refreshRuns(); }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    void refreshRuns({ signal: controller.signal });
+    let inFlight = false;
+    const interval = window.setInterval(async () => {
+      if (document.visibilityState !== 'visible' || inFlight || controller.signal.aborted) return;
+      inFlight = true;
+      try { await refreshRuns({ silent: true, signal: controller.signal }); }
+      finally { inFlight = false; }
+    }, 5000);
+    return () => { controller.abort(); window.clearInterval(interval); };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedRunId) return;
+    const controller = new AbortController();
+    let inFlight = false;
+    const refreshSelectedRun = async () => {
+      if (inFlight || controller.signal.aborted) return;
+      inFlight = true;
+      try {
+        const latest = await getRun(selectedRunId, controller.signal);
+        setRuns((current) => current.map((run) => run.id === latest.id ? latest : run));
+      } catch (error) {
+        if (!controller.signal.aborted) setApiError(getApiErrorMessage(error, 'detail'));
+      } finally { inFlight = false; }
+    };
+    void refreshSelectedRun();
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void refreshSelectedRun();
+    }, 3000);
+    return () => { controller.abort(); window.clearInterval(interval); };
+  }, [selectedRunId]);
 
   const handleCreateRun = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
     setApiError('');
     try {
-      const response = await fetch('/api/runs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workflowName, task }),
-      });
-      if (!response.ok) {
-        if (response.status === 400) throw new Error('Please enter a workflow name (max 80 characters) and task (max 1,000 characters).');
-        throw new Error('Run could not be created (HTTP ' + response.status + ').');
-      }
-      const created = await response.json() as Run;
+      const created = await createRun({ workflowName, task });
       setRuns((current) => [created, ...current]);
       setSelectedRunId(created.id);
       setTask('');
       setShowCreateForm(false);
     } catch (error) {
-      setApiError(error instanceof Error ? error.message : 'Unable to create this run.');
+      setApiError(getApiErrorMessage(error, 'create'));
     } finally {
       setSubmitting(false);
     }
@@ -121,7 +123,7 @@ function App() {
           <div className="section-heading"><div><h2>Workspace health</h2><p>Persisted run outcomes and safe diagnostics</p></div><button className="quiet-button" onClick={() => void refreshRuns()} disabled={loading}>{loading ? 'Refreshing…' : 'Refresh runs'} <span>↻</span></button></div>
           <div className="metric-grid">{metrics.map(({ label, value, note, icon: Icon }) => <article className="metric-card" key={label}><div className="metric-top"><span>{label}</span><div className="metric-icon"><Icon size={17} /></div></div><div className="metric-value">{value}</div><div className="metric-note">{note}</div></article>)}</div>
           <div className="content-grid">
-            <section className="panel runs-panel"><div className="panel-heading"><div><h2>Recent runs</h2><p>Inspect outcomes and execution events</p></div><button className="text-button" onClick={() => void refreshRuns()}>Refresh <ArrowUpRight size={14} /></button></div>
+            <section className="panel runs-panel"><div className="panel-heading"><div><h2>Recent runs</h2><p>Auto-refreshes every 5 seconds while this tab is visible</p></div><button className="text-button" onClick={() => void refreshRuns()}>Refresh <ArrowUpRight size={14} /></button></div>
               <div className="run-list">
                 {loading && <div className="empty-state"><LoaderCircle size={18} className="spin" /> Loading run history…</div>}
                 {!loading && runs.length === 0 && <div className="empty-state">No runs yet. Select “Create workflow” to start a safe mock run.</div>}
@@ -133,14 +135,26 @@ function App() {
                 </article>)}
               </div><div className="panel-footer">Run records, plan snapshots, and timeline events persist in PostgreSQL.</div>
             </section>
-            <section className="panel quick-panel"><div className="panel-heading"><div><h2>Start with a template</h2><p>Safe starting points for common work</p></div></div><button className="template-row" onClick={() => { setWorkflowName('Research & synthesize'); setTask('Summarize the main points of this task without calling external tools.'); setShowCreateForm(true); }}><div className="template-icon purple"><Bot size={18} /></div><div><strong>Research & synthesize</strong><small>Gather and summarize a supplied task</small></div><ArrowUpRight size={15} /></button><button className="template-row" onClick={() => { setWorkflowName('Review a change'); setTask('Review this supplied change description and list potential risks.'); setShowCreateForm(true); }}><div className="template-icon teal"><GitBranch size={18} /></div><div><strong>Review a change</strong><small>Inspect a description with bounded checks</small></div><ArrowUpRight size={15} /></button><button className="template-row" onClick={() => { setWorkflowName('Approval workflow'); setTask('Describe the sensitive action that would require human approval.'); setShowCreateForm(true); }}><div className="template-icon amber"><ShieldCheck size={18} /></div><div><strong>Approval workflow</strong><small>Preview a future approval-gated task</small></div><ArrowUpRight size={15} /></button><div className="safety-note"><ShieldCheck size={16} /><span>The mock runner does not call an LLM, execute tools, or perform external side effects.</span></div></section>
+            <section className="panel quick-panel"><div className="panel-heading"><div><h2>Start with a template</h2><p>Reusable, safe starting points for common work</p></div></div>
+          {WORKFLOW_TEMPLATES.map((template) => {
+            const Icon = template.icon === 'research' ? Bot : template.icon === 'change' ? GitBranch : ShieldCheck;
+            return <button className="template-row" key={template.id} onClick={() => {
+              setWorkflowName(template.workflowName); setTask(template.task); setShowCreateForm(true); setApiError(''); setActiveView('overview');
+            }}>
+              <div className={'template-icon ' + template.accent}><Icon size={18} /></div>
+              <div><strong>{template.title}</strong><small>{template.description}</small></div>
+              <ArrowUpRight size={15} />
+            </button>;
+          })}
+          <div className="safety-note"><ShieldCheck size={16} /><span>Templates only prefill a task. The server still owns tool permissions, approvals, and execution policy; mock mode performs no external side effects.</span></div>
+        </section>
           </div>
 
-          {selectedRun && <section className="panel run-detail-panel"><div className="panel-heading"><div><h2>{selectedRun.workflowName}</h2><p>Run {selectedRun.id}</p></div><button className="icon-button" aria-label="Close run details" onClick={() => setSelectedRunId('')}><X size={16} /></button></div><div className="run-detail-body"><span className={'run-status ' + getRunTone(selectedRun.status)}><i />{selectedRun.status}</span><p>{selectedRun.summary}</p><div className="diagnostics-grid"><div><span>Execution duration</span><strong>{formatDuration(selectedRun.durationMs)}</strong></div><div><span>Failure classification</span><strong>{formatFailureReason(selectedRun.status, selectedRun.failureReason)}</strong></div><div><span>Token / cost usage</span><strong>Unavailable — no model provider invoked</strong></div></div><h3>Execution plan</h3><ol className="timeline">{selectedRun.plan.map((step) => <li key={step.order}><time>Step {step.order}</time><strong>{step.title}</strong><span>{step.description}</span><span className="plan-step-status">{step.status}</span></li>)}</ol><h3>Execution timeline</h3><ol className="timeline">{selectedRun.events.map((item, index) => <li key={item.type + index}><time>{new Date(item.timestamp).toLocaleTimeString()}</time><strong>{item.type}</strong><span>{item.message}</span></li>)}</ol></div></section>}
+          {selectedRun && <section className="panel run-detail-panel"><div className="panel-heading"><div><h2>{selectedRun.workflowName}</h2><p>Run {selectedRun.id}</p></div><button className="icon-button" aria-label="Close run details" onClick={() => setSelectedRunId('')}><X size={16} /></button></div><div className="run-detail-body"><span className={'run-status ' + getRunTone(selectedRun.status)}><i />{selectedRun.status}</span><p>{selectedRun.summary}</p><div className="diagnostics-grid"><div><span>Execution duration</span><strong>{formatDuration(selectedRun.durationMs)}</strong></div><div><span>Failure classification</span><strong>{formatFailureReason(selectedRun.status, selectedRun.failureReason)}</strong></div><div><span>Token / cost usage</span><strong>Unavailable — no model provider invoked</strong></div></div><h3>Execution plan</h3><ol className="timeline">{selectedRun.plan.map((step) => <li key={step.order}><time>Step {step.order}</time><strong>{step.title}</strong><span>{step.description}</span><span className="plan-step-status">{step.status}</span></li>)}</ol><h3>Execution timeline <span className="live-indicator">Live · 3s</span></h3><ol className="timeline" aria-label="Execution timeline; refreshes every three seconds">{selectedRun.events.map((item, index) => <li key={item.type + index}><time>{new Date(item.timestamp).toLocaleTimeString()}</time><strong>{item.type}</strong><span>{item.message}</span></li>)}</ol></div></section>}
 
           </> : <WorkflowEditor />}
 
-          <footer className="page-footer"><span>AGENTFORGE <span className="footer-separator">/</span> OBSERVABILITY FIRST</span><span>Session 9 · Workflow editor <i /></span></footer>
+          <footer className="page-footer"><span>AGENTFORGE <span className="footer-separator">/</span> OBSERVABILITY FIRST</span><span>Session 10 · Templates + live timeline <i /></span></footer>
         </div>
       </section>
     </main>
