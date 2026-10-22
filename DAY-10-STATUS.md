@@ -5,8 +5,8 @@ Session: 10/14
 Status: IN PROGRESS — implementation committed; PR creation and CI verification blocked.
 
 ## Start audit
-- Starting main commit: b374e0ad4d7a31ba58992ffb78414ab72d55fe9a.
-- Latest main CI at start: Run #75 succeeded. Backend Java 21 and frontend build job logs were inspected.
+- Starting main commit: [b374e0a](https://github.com/Karnchoudhary-99/agentforge/commit/b374e0ad4d7a31ba58992ffb78414ab72d55fe9a).
+- Latest main CI at start: [Run #75 — success](https://github.com/Karnchoudhary-99/agentforge/actions/runs/39546049607). Backend Java 21 and frontend build job logs were inspected.
 - Open issues: 0. Open pull requests: 0.
 - Session 9 is complete. PocketLedger and DevGuard remain untouched.
 
@@ -17,7 +17,8 @@ Status: IN PROGRESS — implementation committed; PR creation and CI verificatio
 - Abort requests on unmount and avoid overlapping poll requests.
 - Preserve loading/error/empty states and document the polling fallback.
 - New files: frontend/src/run-api.ts, frontend/src/run-api.test.ts, frontend/src/workflow-templates.ts, frontend/src/workflow-templates.test.ts.
-- Updated files: frontend/src/main.tsx, frontend/src/style.css, docs/14-SESSION-PLAN.md, docs/API.md, docs/ARCHITECTURE.md.
+- Updated files: frontend/src/main.tsx, frontend/src/style.css, README.md, docs/14-SESSION-PLAN.md, docs/API.md, docs/ARCHITECTURE.md, and DAY-10-STATUS.md.
+- Latest feature-branch commit at this report revision: [5f10dc3](https://github.com/Karnchoudhary-99/agentforge/commit/5f10dc3854d7d46b5bb6953f9877b882473f9b75); this is not CI-verified.
 
 ## Verification
 - Baseline main CI Run #75: success; frontend build and backend Java 21 jobs both succeeded.
