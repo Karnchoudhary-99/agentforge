@@ -18,7 +18,7 @@ Status: IN PROGRESS — implementation committed; PR creation and CI verificatio
 - Preserve loading/error/empty states and document the polling fallback.
 - New files: frontend/src/run-api.ts, frontend/src/run-api.test.ts, frontend/src/workflow-templates.ts, frontend/src/workflow-templates.test.ts.
 - Updated files: frontend/src/main.tsx, frontend/src/style.css, README.md, docs/14-SESSION-PLAN.md, docs/API.md, docs/ARCHITECTURE.md, and DAY-10-STATUS.md.
-- Latest feature-branch commit at this report revision: [5f10dc3](https://github.com/Karnchoudhary-99/agentforge/commit/5f10dc3854d7d46b5bb6953f9877b882473f9b75); this is not CI-verified.
+- Implementation commit: [282bc41](https://github.com/Karnchoudhary-99/agentforge/commit/282bc4154486fba0332a5e2578cb0a18ed9cac78). The verification blocker is recorded in [commit 5f10dc3](https://github.com/Karnchoudhary-99/agentforge/commit/5f10dc3854d7d46b5bb6953f9877b882473f9b75); neither feature commit has CI verification yet.
 
 ## Verification
 - Baseline main CI Run #75: success; frontend build and backend Java 21 jobs both succeeded.
