@@ -2,7 +2,7 @@
 
 Date: 2026-10-22
 Session: 10/14
-Status: IN PROGRESS — feature branch prepared; CI verification pending.
+Status: IN PROGRESS — implementation committed; PR creation and CI verification blocked.
 
 ## Start audit
 - Starting main commit: b374e0ad4d7a31ba58992ffb78414ab72d55fe9a.
@@ -22,7 +22,8 @@ Status: IN PROGRESS — feature branch prepared; CI verification pending.
 ## Verification
 - Baseline main CI Run #75: success; frontend build and backend Java 21 jobs both succeeded.
 - Session 10 test/build/PR CI: pending; do not count the session complete before the actual result and job logs are verified.
-- Local checks were not run in this runtime because prior clone attempts failed to resolve github.com through DNS.
+- The GitHub integration's pull-request creation action was blocked by OpenAI safety checks on 2026-10-22; no PR exists, so PR-triggered CI has not started. This is an authorization/integration blocker, not a passing check.
+- A fresh local clone attempt failed with `Could not resolve host: github.com` (git exit 128), so local npm/Maven checks could not run.
 - Session must remain open until PR CI is green, changes are merged, and post-merge main CI is green.
 
 ## Progress and estimate
